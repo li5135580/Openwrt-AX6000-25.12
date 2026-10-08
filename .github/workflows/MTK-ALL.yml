@@ -44,7 +44,7 @@ jobs:
         CONFIG: [MT798X-WIFI-YES]
         PROFILE: [PURE, PLUS]
         SOURCE: [immortalwrt/immortalwrt]
-        BRANCH: [master]
+        BRANCH: [openwrt-25.12]
 
     #调用公用编译核心WRT-CORE.yml
     uses: ./.github/workflows/WRT-CORE.yml

@@ -456,7 +456,7 @@ jobs:
 
             ⚙️ 固件特性
             - WED 无线硬件卸载支持
-            - 基于 OpenWrt / ImmortalWrt（master 快照，每日跟随上游）
+            - 基于 OpenWrt / ImmortalWrt（openwrt-25.12 稳定分支，跟随上游修复）
             - 常用 LuCI 插件预集成
             - 云端自动编译更新
             - 支持自定义配置构建

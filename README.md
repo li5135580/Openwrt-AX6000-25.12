@@ -1,7 +1,10 @@
-# 🚀 ImmortalWrt 京东云百里 AX6000 固件（云编译 · 每日跟随 master）
+# 🚀 ImmortalWrt 京东云百里 AX6000 固件（云编译 · 25.12 稳定分支）
 
 OpenWrt / ImmortalWrt / AX6000 / MT7986A / JDCloud RE-CP-03 / WED / 云编译
-> 基于 ImmortalWrt **master 快照分支**的定制固件，适配京东云无线宝百里 AX6000（RE-CP-03），每天早上 6 点（北京时间）自动跟随上游 master 编译并发布
+> 基于 ImmortalWrt **openwrt-25.12 稳定分支**的定制固件，适配京东云无线宝百里 AX6000（RE-CP-03），每 6 小时自动检测上游修复并编译发布
+
+> 🔀 **本仓库为 25.12 稳定分支版**：内核 6.12 LTS，只做修复性回填，适合养老日常使用。
+> 想要最新内核与特性？👉 **[master 滚动快照版 → Openwrt-AX6000](https://github.com/li5135580/Openwrt-AX6000)**
 
 [👉 进入 Releases 下载固件](../../releases)
 
@@ -23,13 +26,13 @@ OpenWrt / ImmortalWrt / AX6000 / MT7986A / JDCloud RE-CP-03 / WED / 云编译
 ## ⭐ 项目特点
 
 - 🔥 **云编译构建** - 基于 GitHub Actions 完全自动化编译
-- 🔄 **每日跟随上游** - 跟踪 ImmortalWrt master 快照分支，每天自动编译发布
+- 🔄 **稳定分支跟进** - 跟踪 ImmortalWrt openwrt-25.12 稳定分支，上游修复自动编译发布
 - ⚡ **硬件卸载** - 支持 MT7986 的 WED（Wireless Ethernet Dispatch）无线硬件卸载
 - 🌐 **2.5G 网口** - RTL8221B 2.5GbE 支持
 - 📦 **双版本** - PURE 纯净版 / PLUS 全量版，按需选择
 - 🧩 **灵活定制** - 支持自定义编译配置和插件
 
-> ⚠️ **包管理器变更提醒**：ImmortalWrt master 已从 opkg 切换到 **apk**。系统内安装软件包请使用 `apk add <包名>`，旧教程中的 `opkg install` 命令不再适用；第三方 `.ipk` 文件不能直接用，需对应 apk 格式。
+> ⚠️ **包管理器变更提醒**：OpenWrt / ImmortalWrt 自 25.12 起已从 opkg 切换到 **apk**。系统内安装软件包请使用 `apk add <包名>`，旧教程中的 `opkg install` 命令不再适用；第三方 `.ipk` 文件不能直接用，需对应 apk 格式。
 
 ---
 
@@ -122,7 +125,7 @@ Releases 页面每个版本包含以下文件（PURE 与 PLUS 分开发布）：
 - 手动测试时可在 `WRT-TEST` 工作流选择 `PROFILE=PURE` 或 `PROFILE=PLUS`；建议 Plus 版发布前至少先用 `TEST=true` 生成最终 `.config`，再用完整编译确认上游插件依赖没有变化。
 - Release 会额外上传 `Packages-*.txt` 记录 Plus 版外部插件仓库、分支和 commit，方便排查 OpenClash / PassWall2 上游变更导致的编译问题。
 
-> ⚠️ Plus 版依赖外部插件仓库和上游 feeds，若上游调整包名或依赖，可能需要同步更新 `Config/GENERAL_AX6000_PLUS.txt`。**master 是滚动快照分支，上游变化比稳定分支更频繁，某日编译失败多半是这个原因。**
+> ⚠️ Plus 版依赖外部插件仓库和上游 feeds，若上游调整包名或依赖，可能需要同步更新 `Config/GENERAL_AX6000_PLUS.txt`。
 
 ### PLUS 版使用提示
 
@@ -164,7 +167,7 @@ Releases 页面每个版本包含以下文件（PURE 与 PLUS 分开发布）：
 
 | 项目 | 说明 |
 |------|------|
-| [immortalwrt/immortalwrt](https://github.com/immortalwrt/immortalwrt)（`master` 分支） | 本项目唯一固件源码，百里 RE-CP-03 已获官方支持，无需私有 fork |
+| [immortalwrt/immortalwrt](https://github.com/immortalwrt/immortalwrt)（`openwrt-25.12` 分支） | 本项目唯一固件源码，百里 RE-CP-03 已获官方支持，无需私有 fork |
 | [openwrt/openwrt](https://github.com/openwrt/openwrt) | ImmortalWrt 的上游，mt76 无线驱动与 WED 硬件卸载的源头 |
 
 ### 插件来源（PLUS 版）
@@ -195,7 +198,7 @@ Releases 页面每个版本包含以下文件（PURE 与 PLUS 分开发布）：
 
 ### 触发编译
 
-- **每 6 小时检测上游更新**：每 6 小时自动比对 immortalwrt master 与插件仓库（PLUS 版含 OpenClash / PassWall2 等）相对上次 Release 是否有新 commit——**有变化立即编译**，均无变化则跳过不重复出包，上游修复最迟 6 小时内跟进。发布时 Release 正文会自动附带**本次相对上次的上游提交列表**，一眼看清更新了什么。
+- **每 6 小时检测上游更新**：每 6 小时自动比对 immortalwrt openwrt-25.12 分支与插件仓库（PLUS 版含 OpenClash / PassWall2 等）相对上次 Release 是否有新 commit——**有变化立即编译**，均无变化则跳过不重复出包，上游修复最迟 6 小时内跟进。发布时 Release 正文会自动附带**本次相对上次的上游提交列表**，一眼看清更新了什么。
 - **每日清理**：每天早上 6 点（北京时间）`Auto-Clean` 清理旧 Release（保留最近 100 个）与旧运行记录，完成后也会触发一次检测。
 - **手动编译**：Actions → `MTK-ALL` → Run workflow，同时构建 PURE 与 PLUS，手动触发跳过上游比对、永远直接编译。
 - **配置验证**：Actions → `WRT-TEST`，仅生成最终 `.config` 不编译固件，几分钟出结果。
@@ -207,5 +210,4 @@ Releases 页面每个版本包含以下文件（PURE 与 PLUS 分开发布）：
 刷机有风险，操作需谨慎。
 
 本项目固件仅供学习与研究使用，请确认设备型号匹配（**仅适用于京东云百里 AX6000 / RE-CP-03**）并提前备份数据。
-master 为滚动快照分支，固件稳定性随上游波动，重要环境请谨慎升级。
 因刷机造成的设备损坏或数据丢失，作者不承担任何责任。

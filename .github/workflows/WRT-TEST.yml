@@ -19,7 +19,7 @@ on:
         options:
           - immortalwrt/immortalwrt
       BRANCH:
-        default: 'master'
+        default: 'openwrt-25.12'
         required: true
         type: string
       PACKAGE:

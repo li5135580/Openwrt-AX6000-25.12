@@ -6,8 +6,8 @@ body:
     attributes:
       value: |
         常见问题先自查：
-        - **固件基底**：ImmortalWrt master 滚动快照（MediaTek MT7986A 平台），每日跟随上游编译，无 24.10 等 release 版本计划，有定制需求可 fork 本仓库自编（Release 附件含完整 .config）。
-        - **包管理器是 apk 不是 opkg**：master 已切换到 apk，装包用 `apk add <包名>`；kmod 无法后装（内核与仓库快照强绑定），需要请提「插件集成请求」。
+        - **固件基底**：ImmortalWrt openwrt-25.12 稳定分支（MediaTek MT7986A 平台），上游有修复自动编译，有定制需求可 fork 本仓库自编（Release 附件含完整 .config）。
+        - **包管理器是 apk 不是 opkg**：25.12 起已切换到 apk，装包用 `apk add <包名>`；kmod 无法后装（内核与仓库快照强绑定），需要请提「插件集成请求」。
         - **要用 Docker**：请刷 PLUS 版，已内置全部依赖。
   - type: dropdown
     id: profile
