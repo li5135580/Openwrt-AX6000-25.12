@@ -156,3 +156,7 @@ CONFIG_PACKAGE_luci-app-wireless-regdb=y
 #老优化，副作用大
 CONFIG_PACKAGE_skb_recycler=n
 
+# GitHub Releases 在线升级（本仓库自带插件 Package/luci-app-github-updater）
+CONFIG_PACKAGE_luci-app-github-updater=y
+CONFIG_PACKAGE_ca-bundle=y
+

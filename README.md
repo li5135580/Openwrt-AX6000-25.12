@@ -30,6 +30,7 @@ OpenWrt / ImmortalWrt / AX6000 / MT7986A / JDCloud RE-CP-03 / WED / 云编译
 - ⚡ **硬件卸载** - 支持 MT7986 的 WED（Wireless Ethernet Dispatch）无线硬件卸载
 - 🌐 **2.5G 网口** - RTL8221B 2.5GbE 支持
 - 📦 **双版本** - PURE 纯净版 / PLUS 全量版，按需选择
+- ⬆️ **在线升级** - LuCI 内置 GitHub Releases 更新检测，一键下载校验并升级
 - 🧩 **灵活定制** - 支持自定义编译配置和插件
 
 > ⚠️ **包管理器变更提醒**：OpenWrt / ImmortalWrt 自 25.12 起已从 opkg 切换到 **apk**。系统内安装软件包请使用 `apk add <包名>`，旧教程中的 `opkg install` 命令不再适用；第三方 `.ipk` 文件不能直接用，需对应 apk 格式。

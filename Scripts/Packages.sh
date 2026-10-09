@@ -47,6 +47,12 @@ UPDATE_PACKAGE() {
 	fi
 }
 
+# 本仓库自带插件（Package/ 目录，不依赖外部仓库，PURE/PLUS 均集成）
+if [ -n "$GITHUB_WORKSPACE" ] && [ -d "$GITHUB_WORKSPACE/Package" ]; then
+	cp -rf "$GITHUB_WORKSPACE/Package/"* ./
+	echo "[+] Local packages copied from repository."
+fi
+
 # 调用示例
 # UPDATE_PACKAGE "OpenAppFilter" "destan19/OpenAppFilter" "master" "" "custom_name1 custom_name2"
 # UPDATE_PACKAGE "open-app-filter" "destan19/OpenAppFilter" "master" "" "luci-app-appfilter oaf" 这样会把原有的open-app-filter，luci-app-appfilter，oaf相关组件删除，不会出现coremark错误。

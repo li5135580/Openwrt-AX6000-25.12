@@ -1,0 +1,18 @@
+{
+	"luci-app-github-updater": {
+		"description": "GitHub Releases online firmware updater",
+		"read": {
+			"file": {
+				"/etc/fw-build-info": ["read"]
+			},
+			"uci": ["github-updater"]
+		},
+		"write": {
+			"file": {
+				"/sbin/sysupgrade": ["exec"],
+				"/tmp/github-fw*": ["write"]
+			},
+			"uci": ["github-updater"]
+		}
+	}
+}

@@ -1,0 +1,127 @@
+<%+header%>
+<style>
+.ghu-box{border:1px solid #ddd;border-radius:4px;padding:12px 16px;margin:12px 0;background:#fafafa}
+.ghu-ok{color:#2a7e2a;font-weight:bold}
+.ghu-new{color:#c07000;font-weight:bold}
+.ghu-err{color:#c02020;font-weight:bold}
+.ghu-btn{display:inline-block;margin:6px 10px 6px 0;padding:7px 18px;border:1px solid #888;border-radius:4px;background:#f0f0f0;cursor:pointer}
+.ghu-btn[disabled]{opacity:.45;cursor:not-allowed}
+#ghu-log{white-space:pre-wrap;background:#222;color:#ddd;padding:10px;border-radius:4px;font-family:monospace;font-size:12px;min-height:60px;max-height:280px;overflow:auto;margin-top:12px}
+</style>
+
+<h2><%:GitHub Releases 在线升级%></h2>
+<p><%:检测固件仓库 Releases 中最新的自动编译固件，下载并校验后直接升级本机系统。%></p>
+
+<div class="ghu-box">
+	<div><%:当前固件%>：<b id="ghu-cur">…</b>（<span id="ghu-prof"></span>）</div>
+	<div><%:最新发布%>：<b id="ghu-latest">…</b></div>
+	<div id="ghu-state" style="margin-top:6px"></div>
+</div>
+
+<div class="ghu-box">
+	<%:下载加速代理前缀%>（<%:国内可填，如%> https://ghfast.top/）：
+	<input type="text" id="ghu-mirror" style="width:300px" placeholder="<%:留空为直连 GitHub%>">
+	<a class="ghu-btn" href="javascript:savecfg()"><%:保存%></a>
+</div>
+
+<div class="ghu-box">
+	<a class="ghu-btn" href="javascript:check()" id="ghu-b1"><%:检查更新%></a>
+	<a class="ghu-btn" href="javascript:dl()" id="ghu-b2" disabled><%:下载并校验固件%></a>
+	<label><input type="checkbox" id="ghu-keep" checked> <%:保留配置升级%></label>
+	<a class="ghu-btn" href="javascript:up()" id="ghu-b3" disabled style="background:#ffe9e9"><%:开始升级%></a>
+</div>
+
+<div id="ghu-log"></div>
+
+<script>
+var API = '<%=url("admin/system/github-updater")%>';
+var TOKEN = '<%=token%>';
+
+function log(m) {
+	var el = document.getElementById('ghu-log');
+	el.textContent += m + "\n";
+	el.scrollTop = el.scrollHeight;
+}
+function api(act, extra, cb) {
+	var x = new XMLHttpRequest();
+	x.open('GET', API + '/' + act + '?token=' + TOKEN + (extra || ''), true);
+	x.timeout = 120000;
+	x.onreadystatechange = function() {
+		if (x.readyState !== 4) return;
+		var d = null;
+		try { d = JSON.parse(x.responseText); } catch(e) {}
+		if (!d) { cb({ ok:false, error:'请求失败（HTTP ' + x.status + '）' }); return; }
+		cb(d);
+	};
+	x.ontimeout = function(){ cb({ ok:false, error:'请求超时' }); };
+	x.send();
+}
+function fmtSize(b) {
+	b = parseInt(b); if (!b) return '';
+	return (b/1048576).toFixed(1) + ' MB';
+}
+
+function check() {
+	log('正在检查更新…');
+	document.getElementById('ghu-state').textContent = '';
+	api('check', '', function(d) {
+		if (!d.ok) { log('× ' + (d.error || '检查失败')); return; }
+		document.getElementById('ghu-cur').textContent = d.current || '未知';
+		document.getElementById('ghu-prof').textContent = d.profile + ' 版 / ' + d.repo;
+		document.getElementById('ghu-latest').textContent =
+			(d.latest_date || '?') + '（' + (d.fw_name || '无固件文件') + (d.fw_size ? '，' + fmtSize(d.fw_size) : '') + '）';
+		if (d.mirror) document.getElementById('ghu-mirror').value = d.mirror;
+		var st = document.getElementById('ghu-state');
+		if (d.has_update) {
+			st.innerHTML = '<span class="ghu-new">● 发现新版本，可以升级</span>';
+			document.getElementById('ghu-b2').removeAttribute('disabled');
+			log('√ 发现新版本：' + d.latest_date);
+		} else {
+			st.innerHTML = '<span class="ghu-ok">● 已是最新版本</span>';
+			document.getElementById('ghu-b2').removeAttribute('disabled');
+			log('√ 当前已是最新（如需强制重装可直接下载升级）');
+		}
+	});
+}
+
+function dl() {
+	document.getElementById('ghu-b2').setAttribute('disabled', '1');
+	log('正在下载固件（文件较大，请耐心等待，勿刷新页面）…');
+	api('download', '', function(d) {
+		if (!d.ok) {
+			log('× ' + d.error);
+			document.getElementById('ghu-b2').removeAttribute('disabled');
+			return;
+		}
+		log('√ 下载完成：' + d.name + '（' + fmtSize(d.size) + '）');
+		log(d.verified ? '√ SHA256 校验通过' : '△ 该 Release 无校验文件，跳过校验');
+		document.getElementById('ghu-b3').removeAttribute('disabled');
+	});
+}
+
+function up() {
+	var keep = document.getElementById('ghu-keep').checked;
+	if (!confirm('确认开始升级？\n' + (keep ? '将保留当前配置。' : '将不保留配置（恢复出厂）！') + '\n升级过程中请勿断电。')) return;
+	document.getElementById('ghu-b3').setAttribute('disabled', '1');
+	log('正在启动升级…');
+	api('upgrade', '&keep=' + (keep ? '1' : '0'), function(d) {
+		if (!d.ok) {
+			log('× ' + d.error);
+			document.getElementById('ghu-b3').removeAttribute('disabled');
+			return;
+		}
+		log('√ ' + d.msg);
+		log('页面失去响应属正常现象，请等待路由器重启完成后重新访问。');
+	});
+}
+
+function savecfg() {
+	var m = document.getElementById('ghu-mirror').value;
+	api('savecfg', '&mirror=' + encodeURIComponent(m), function(d) {
+		log(d.ok ? '√ 代理前缀已保存' : '× 保存失败');
+	});
+}
+
+check();
+</script>
+<%+footer%>
