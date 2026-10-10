@@ -77,11 +77,18 @@ function check() {
 			st.innerHTML = '<span class="ghu-new">● 发现新版本，可以升级</span>';
 			document.getElementById('ghu-b2').removeAttribute('disabled');
 			log('√ 发现新版本：' + d.latest_date);
+			if (d.changelog && d.changelog.length > 0) {
+				log('');
+				log('——— 本次更新内容 ———');
+				log(d.changelog);
+				log('————————————————————');
+			}
 		} else {
 			st.innerHTML = '<span class="ghu-ok">● 已是最新版本</span>';
 			document.getElementById('ghu-b2').removeAttribute('disabled');
 			log('√ 当前已是最新（如需强制重装可直接下载升级）');
 		}
+		if (d.page) log('完整更新说明：' + d.page);
 	});
 }
 

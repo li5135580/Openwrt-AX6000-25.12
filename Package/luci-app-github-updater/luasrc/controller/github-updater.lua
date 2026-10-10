@@ -70,10 +70,23 @@ local function read_all(path)
 	return s
 end
 
+-- 从 Release 正文中提取「本次上游更新」一节（纯文本）
+local function extract_changelog(body)
+	if type(body) ~= "string" or body == "" then return "" end
+	local a = body:find("本次上游更新", 1, true)
+	if not a then return "" end
+	local rest = body:match("\n(.*)", a) or ""
+	local b = rest:find("━━━", 1, true)
+	if b then rest = rest:sub(1, b - 1) end
+	return rest:gsub("%s+$", "")
+end
+
 -- 从 Release 对象数组中挑选固件资产（API 通道）
 local function pick_assets(rel)
 	local r = { tag = rel.tag_name,
-	            date = (rel.tag_name or ""):match(DATE_PAT) or "" }
+	            date = (rel.tag_name or ""):match(DATE_PAT) or "",
+	            page = rel.html_url,
+	            changelog = extract_changelog(rel.body) }
 	for _, a in ipairs(rel.assets or {}) do
 		if type(a) == "table" and type(a.name) == "string" then
 			if a.name:find("sysupgrade") and a.name:match("%.itb$") then
@@ -130,7 +143,9 @@ local function find_latest_atom(info, mirror)
 	for tag in xml:gmatch('releases/tag/([^"<]+)') do
 		if tag:sub(1, #want) == want then
 			local r = { tag = tag, date = tag:match(DATE_PAT) or "",
-			            channel = "atom" }
+			            channel = "atom",
+			            page = string.format("https://github.com/%s/releases/tag/%s",
+			                                 info.FW_REPO, tag) }
 			-- atom 里没有资产列表，用固定名的 sha256sums.txt 反推固件文件名与哈希
 			local sum_url = string.format(
 				"https://github.com/%s/releases/download/%s/sha256sums.txt",
@@ -188,6 +203,8 @@ function action_check()
 		ret.fw_name     = rel.name
 		ret.fw_size     = rel.size
 		ret.channel     = rel.channel
+		ret.page        = rel.page
+		ret.changelog   = rel.changelog
 		ret.has_update  = (rel.date ~= "" and rel.date > info.FW_DATE)
 	end
 	jret(ret)
