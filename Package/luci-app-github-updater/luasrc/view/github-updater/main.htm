@@ -71,6 +71,7 @@ function check() {
 		document.getElementById('ghu-latest').textContent =
 			(d.latest_date || '?') + '（' + (d.fw_name || '无固件文件') + (d.fw_size ? '，' + fmtSize(d.fw_size) : '') + '）';
 		if (d.mirror) document.getElementById('ghu-mirror').value = d.mirror;
+		log('√ 检测通道：' + (d.channel === 'atom' ? 'releases.atom（github.com 直连）' : 'GitHub API'));
 		var st = document.getElementById('ghu-state');
 		if (d.has_update) {
 			st.innerHTML = '<span class="ghu-new">● 发现新版本，可以升级</span>';
