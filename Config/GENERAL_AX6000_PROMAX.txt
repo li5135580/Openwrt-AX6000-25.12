@@ -4,17 +4,11 @@
 # SQM 智能流控（CAKE 队列）；注意与硬件流卸载互斥，使用时请关闭防火墙的硬件卸载
 CONFIG_PACKAGE_luci-app-sqm=y
 
-# Argon 主题及配置面板（安装后在「系统 → 语言和界面」手动切换，不改默认主题）
-CONFIG_PACKAGE_luci-theme-argon=y
-CONFIG_PACKAGE_luci-app-argon-config=y
-
 # 实时带宽监控
 CONFIG_PACKAGE_luci-app-nlbwmon=y
-
-# 标准网络唤醒（与 PLUS 的 wolultra 增强版共存，各用各的）
-CONFIG_PACKAGE_luci-app-wol=y
 
 # 统计图表（collectd + rrdtool，系统负载/流量/温度等曲线）
 CONFIG_PACKAGE_luci-app-statistics=y
 
-# luci-app-ddns 已在 PLUS 版启用，无需重复声明
+# Argon 主题与 iStore 商店已在 PLUS 版集成（默认主题即 Argon），此处无需重复；
+# luci-app-wol 与 PLUS 的 wolultra 功能重复，不再集成

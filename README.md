@@ -44,8 +44,8 @@ OpenWrt / ImmortalWrt / AX6000 / MT7986A / JDCloud RE-CP-03 / WED / 云编译
 | 版本 | 下载入口 | 适合场景 |
 |------|----------|----------|
 | 🍃 `PURE` 纯净版 | [👉 下载最新 PURE 固件](../../releases?q=PURE&expanded=true) | 轻量稳定，日常推荐，插件按需自装 |
-| 🚀 `PLUS` 版 | [👉 下载最新 PLUS 固件](../../releases?q=PLUS&expanded=true) | OpenClash / PassWall2 / Docker / AdGuard Home 开箱即用 |
-| 👑 `PROMAX` 版 | [👉 下载最新 PROMAX 固件](../../releases?q=PROMAX&expanded=true) | PLUS 全家桶 + SQM 流控 / Argon 主题 / 带宽监控 / 统计图表 |
+| 🚀 `PLUS` 版 | [👉 下载最新 PLUS 固件](../../releases?q=PLUS&expanded=true) | OpenClash / PassWall2 / Docker / AdGuard Home / iStore 商店 / Argon 主题开箱即用 |
+| 👑 `PROMAX` 版 | [👉 下载最新 PROMAX 固件](../../releases?q=PROMAX&expanded=true) | PLUS 全家桶 + SQM 流控 / 带宽监控 / 统计图表 |
 
 > 💡 打开后列表**最上方**即为该版本最新固件；也可浏览 [全部 Releases](../../releases)。
 
@@ -54,8 +54,8 @@ OpenWrt / ImmortalWrt / AX6000 / MT7986A / JDCloud RE-CP-03 / WED / 云编译
 | 版本 | 适合人群 | 预置内容 |
 |------|----------|----------|
 | `PURE` 纯净版 | 希望系统轻量、稳定，按需自行安装插件的用户 | 完整网络功能栈 + 常用管理插件 |
-| `PLUS` 版 | 希望刷完即用常见扩展服务的用户 | 在纯净版基础上增加 OpenClash、PassWall2、Docker / Dockerman、AdGuard Home、DDNS、ttyd 终端、UPnP、WireGuard 管理界面、USB 打印（p910nd），以及分区扩容（partexp）、网络唤醒增强（wolultra）等实用插件 |
-| `PROMAX` 版 | 想要最全功能集合的用户 | 在 PLUS 版基础上再增加 SQM 智能流控、Argon 主题及配置面板、实时带宽监控（nlbwmon）、标准网络唤醒（wol）、统计图表（statistics） |
+| `PLUS` 版 | 希望刷完即用常见扩展服务的用户 | 在纯净版基础上增加 OpenClash、PassWall2、Docker / Dockerman、AdGuard Home、DDNS、ttyd 终端、UPnP、WireGuard 管理界面、USB 打印（p910nd）、iStore 应用商店，以及分区扩容（partexp）、网络唤醒增强（wolultra）等实用插件；默认主题为 Argon |
+| `PROMAX` 版 | 想要最全功能集合的用户 | 在 PLUS 版基础上再增加 SQM 智能流控、实时带宽监控（nlbwmon）、统计图表（statistics） |
 
 ### 文件命名与附件说明
 
@@ -182,6 +182,7 @@ Releases 页面每个版本包含以下文件（PURE / PLUS / PROMAX 分开发�
 | [Openwrt-Passwall/openwrt-passwall-packages](https://github.com/Openwrt-Passwall/openwrt-passwall-packages) | xray / sing-box 等依赖包 feed |
 | [sirpdboy/luci-app-partexp](https://github.com/sirpdboy/luci-app-partexp) | 分区扩容插件 |
 | [ones20250/packages](https://github.com/ones20250/packages) | wolultra 网络唤醒增强插件 |
+| [linkease/istore](https://github.com/linkease/istore) | iStore 应用商店（feed 集成） |
 
 ### GitHub Actions 组件
 

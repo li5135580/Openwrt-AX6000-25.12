@@ -241,6 +241,8 @@ jobs:
           # LuCI 插件本体由 Packages.sh 克隆到 package/，这里不再加 LuCI feed，避免同名包双重定义。
           if [[ "$WRT_PROFILE" != "PURE" ]]; then
             echo "src-git passwall_packages https://github.com/Openwrt-Passwall/openwrt-passwall-packages" >> feeds.conf.default
+            # iStore 应用商店 feed（is-opkg 兼容 apk）
+            echo "src-git istore https://github.com/linkease/istore.git;main" >> feeds.conf.default
           fi
 
       - name: Check Scripts

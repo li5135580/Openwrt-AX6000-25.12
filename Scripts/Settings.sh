@@ -72,6 +72,23 @@ mkdir -p files/etc
 } > files/etc/fw-build-info
 
 # =========================================================
+# 默认主题：PLUS/PROMAX 用 Argon，PURE 保持 bootstrap
+# =========================================================
+if [[ "${WRT_PROFILE^^}" != "PURE" ]]; then
+	mkdir -p files/etc/uci-defaults
+	cat > files/etc/uci-defaults/99-default-theme <<'EOF'
+#!/bin/sh
+# 仅在 argon 主题存在时切换，避免异常时 LuCI 无主题可用
+if [ -d /www/luci-static/argon ]; then
+	uci set luci.main.mediaurlbase='/luci-static/argon'
+	uci commit luci
+fi
+exit 0
+EOF
+	chmod +x files/etc/uci-defaults/99-default-theme
+fi
+
+# =========================================================
 # 智能系统调优：优化内存水位线 (min_free_kbytes)
 # =========================================================
 
