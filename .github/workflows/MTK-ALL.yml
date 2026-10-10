@@ -3,6 +3,9 @@ name: MTK-ALL
 
 #CI计划
 on:
+  #本仓库配置/插件变更时立即编译（push 事件不做跳过判断，永远直接编译）
+  push:
+    branches: [main]
   #每6小时检测一次上游更新（源码+插件均无变化时自动跳过编译）
   schedule:
     - cron: 17 */6 * * *
