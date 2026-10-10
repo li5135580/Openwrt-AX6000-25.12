@@ -93,6 +93,9 @@ CONFIG_PACKAGE_luci-proto-wireguard=y
 
 # iStore 应用商店（feed 由 WRT-CORE 在 Clone Code 阶段为 PLUS/PROMAX 追加 linkease/istore；
 # is-opkg 脚本原生兼容 apk 体系）
+# 注意：上游 tar/xz 打包依赖存在 bug（openwrt/packages#30075），
+# 不显式启用 xz-utils 会导致 luci-app-store 在 kconfig 中不可见、被静默丢弃
+CONFIG_PACKAGE_xz-utils=y
 CONFIG_PACKAGE_luci-app-store=y
 
 # Argon 主题及配置面板（默认主题由 Scripts/Settings.sh 对非 PURE 版设置为 Argon）
