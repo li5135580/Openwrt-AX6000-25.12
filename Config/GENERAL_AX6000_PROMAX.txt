@@ -1,0 +1,20 @@
+# Promax 版插件配置：在 PLUS 版基础上追加
+# 注意：本文件在 GENERAL_AX6000_PLUS.txt 之后追加（WRT-CORE 按顺序叠加）
+
+# SQM 智能流控（CAKE 队列）；注意与硬件流卸载互斥，使用时请关闭防火墙的硬件卸载
+CONFIG_PACKAGE_luci-app-sqm=y
+
+# Argon 主题及配置面板（安装后在「系统 → 语言和界面」手动切换，不改默认主题）
+CONFIG_PACKAGE_luci-theme-argon=y
+CONFIG_PACKAGE_luci-app-argon-config=y
+
+# 实时带宽监控
+CONFIG_PACKAGE_luci-app-nlbwmon=y
+
+# 标准网络唤醒（与 PLUS 的 wolplus 增强版共存，各用各的）
+CONFIG_PACKAGE_luci-app-wol=y
+
+# 统计图表（collectd + rrdtool，系统负载/流量/温度等曲线）
+CONFIG_PACKAGE_luci-app-statistics=y
+
+# luci-app-ddns 已在 PLUS 版启用，无需重复声明

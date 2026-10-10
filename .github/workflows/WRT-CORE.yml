@@ -100,20 +100,32 @@ jobs:
           echo "WRT_MARK=${GITHUB_REPOSITORY%%/*}" >> $GITHUB_ENV
           WRT_PROFILE_UPPER=$(echo "${WRT_PROFILE:-PURE}" | tr '[:lower:]' '[:upper:]')
           case "$WRT_PROFILE_UPPER" in
-            PURE|PLUS) ;;
+            PURE|PLUS|PROMAX) ;;
             *) echo "Unsupported WRT_PROFILE: $WRT_PROFILE" >&2; exit 1 ;;
           esac
           echo "WRT_PROFILE=$WRT_PROFILE_UPPER" >> $GITHUB_ENV
-          if [[ "$WRT_PROFILE_UPPER" == "PLUS" ]]; then
-            echo "WRT_PROFILE_DESC=Plus 版，预装 OpenClash、PassWall2、Docker/Dockerman、AdGuard Home、DDNS、ttyd、UPnP 及分区扩容、网络唤醒等实用插件，刷完即用；启用 AdGuard Home 与代理插件前请先阅读 README 的「PLUS 版使用提示」" >> $GITHUB_ENV
-          else
-            echo "WRT_PROFILE_DESC=纯净版，轻量稳定，仅含基础网络与常用管理插件，扩展插件按需自行安装" >> $GITHUB_ENV
-          fi
+          case "$WRT_PROFILE_UPPER" in
+            PROMAX)
+              echo "WRT_PROFILE_DESC=Promax 版，PLUS 全家桶基础上追加 SQM 流控、Argon 主题、带宽监控、网络唤醒、统计图表；启用 AdGuard Home 与代理插件前请先阅读 README 的「PLUS 版使用提示」" >> $GITHUB_ENV ;;
+            PLUS)
+              echo "WRT_PROFILE_DESC=Plus 版，预装 OpenClash、PassWall2、Docker/Dockerman、AdGuard Home、DDNS、ttyd、UPnP 及分区扩容、网络唤醒等实用插件，刷完即用；启用 AdGuard Home 与代理插件前请先阅读 README 的「PLUS 版使用提示」" >> $GITHUB_ENV ;;
+            *)
+              echo "WRT_PROFILE_DESC=纯净版，轻量稳定，仅含基础网络与常用管理插件，扩展插件按需自行安装" >> $GITHUB_ENV ;;
+          esac
           WRT_INFO="${WRT_SOURCE%%/*}"
           echo "WRT_INFO=$WRT_INFO" >> $GITHUB_ENV
           echo "WRT_TARGET=$(grep -m 1 -oP '^CONFIG_TARGET_\K[\w]+(?=\=y)' ./Config/$WRT_CONFIG.txt)" >> $GITHUB_ENV
           echo "WRT_WIFI=wifi-yes" >> $GITHUB_ENV
-          echo "WRT_EXTRA_CONFIG=$([[ -f ./Config/GENERAL_AX6000_${WRT_PROFILE_UPPER}.txt ]] && echo ./Config/GENERAL_AX6000_${WRT_PROFILE_UPPER}.txt || true)" >> $GITHUB_ENV
+          # Promax = PLUS 配置 + PROMAX 追加配置，按顺序叠加
+          WRT_EXTRA_CONFIG=""
+          if [[ "$WRT_PROFILE_UPPER" == "PROMAX" ]]; then
+            for f in GENERAL_AX6000_PLUS.txt GENERAL_AX6000_PROMAX.txt; do
+              [[ -f ./Config/$f ]] && WRT_EXTRA_CONFIG="$WRT_EXTRA_CONFIG ./Config/$f"
+            done
+          elif [[ -f ./Config/GENERAL_AX6000_${WRT_PROFILE_UPPER}.txt ]]; then
+            WRT_EXTRA_CONFIG="./Config/GENERAL_AX6000_${WRT_PROFILE_UPPER}.txt"
+          fi
+          echo "WRT_EXTRA_CONFIG=$WRT_EXTRA_CONFIG" >> $GITHUB_ENV
           echo "WRT_KVER=none" >> $GITHUB_ENV
           echo "WRT_LIST=none" >> $GITHUB_ENV
 
@@ -151,8 +163,8 @@ jobs:
               } >> "$CHANGELOG"
             fi
 
-            # PLUS 版追加比对插件仓库 commit（上次构建记录在 Release 的 Packages-*.txt 附件中）
-            if [[ "$WRT_PROFILE" == "PLUS" ]]; then
+            # PLUS/PROMAX 版追加比对插件仓库 commit（上次构建记录在 Release 的 Packages-*.txt 附件中）
+            if [[ "$WRT_PROFILE" != "PURE" ]]; then
               PKG_URL=$(gh api "repos/$GITHUB_REPOSITORY/releases/tags/$LATEST_TAG" \
                 --jq '.assets[] | select(.name | startswith("Packages-")) | .browser_download_url' 2>/dev/null | head -1) || PKG_URL=""
               if [[ -z "$PKG_URL" ]]; then
@@ -225,9 +237,9 @@ jobs:
             sed -i '/.cn\//d; /tencent/d; /aliyun/d' "$PROJECT_MIRRORS_FILE"
           fi
 
-          # Plus 版补充 PassWall 依赖包 feed（xray/sing-box 等）。
+          # Plus/Promax 版补充 PassWall 依赖包 feed（xray/sing-box 等）。
           # LuCI 插件本体由 Packages.sh 克隆到 package/，这里不再加 LuCI feed，避免同名包双重定义。
-          if [[ "$WRT_PROFILE" == "PLUS" ]]; then
+          if [[ "$WRT_PROFILE" != "PURE" ]]; then
             echo "src-git passwall_packages https://github.com/Openwrt-Passwall/openwrt-passwall-packages" >> feeds.conf.default
           fi
 
@@ -307,7 +319,7 @@ jobs:
 
           : > "$GITHUB_WORKSPACE/package-versions.txt"
           $GITHUB_WORKSPACE/Scripts/Packages.sh
-          if [[ "$WRT_PROFILE" == "PLUS" && -e ../feeds/passwall_packages/.git ]]; then
+          if [[ "$WRT_PROFILE" != "PURE" && -e ../feeds/passwall_packages/.git ]]; then
             echo "passwall_packages(feed) Openwrt-Passwall/openwrt-passwall-packages main $(git -C ../feeds/passwall_packages rev-parse --short HEAD)" >> "$GITHUB_WORKSPACE/package-versions.txt"
           fi
           if [ -s "$GITHUB_WORKSPACE/package-versions.txt" ]; then
@@ -328,7 +340,9 @@ jobs:
             cat $GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt >> .config
           else
             #cat $GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt $GITHUB_WORKSPACE/Config/GENERAL.txt >> .config
-            cat $GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt $GITHUB_WORKSPACE/Config/GENERAL_AX6000.txt ${WRT_EXTRA_CONFIG:+$GITHUB_WORKSPACE/${WRT_EXTRA_CONFIG#./}} >> .config
+            EXTRA_FILES=""
+            for f in $WRT_EXTRA_CONFIG; do EXTRA_FILES="$EXTRA_FILES $GITHUB_WORKSPACE/${f#./}"; done
+            cat $GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt $GITHUB_WORKSPACE/Config/GENERAL_AX6000.txt $EXTRA_FILES >> .config
           fi
 
           $GITHUB_WORKSPACE/Scripts/Settings.sh

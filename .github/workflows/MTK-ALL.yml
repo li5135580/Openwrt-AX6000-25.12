@@ -45,7 +45,7 @@ jobs:
       #max-parallel: 3
       matrix:
         CONFIG: [MT798X-WIFI-YES]
-        PROFILE: [PURE, PLUS]
+        PROFILE: [PURE, PLUS, PROMAX]
         SOURCE: [immortalwrt/immortalwrt]
         BRANCH: [openwrt-25.12]
 

@@ -9,6 +9,7 @@ body:
       options:
         - PURE 纯净版
         - PLUS 版
+        - PROMAX 版
     validations:
       required: true
   - type: input

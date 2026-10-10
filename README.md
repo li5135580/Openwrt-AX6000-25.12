@@ -45,6 +45,7 @@ OpenWrt / ImmortalWrt / AX6000 / MT7986A / JDCloud RE-CP-03 / WED / 云编译
 |------|----------|----------|
 | 🍃 `PURE` 纯净版 | [👉 下载最新 PURE 固件](../../releases?q=PURE&expanded=true) | 轻量稳定，日常推荐，插件按需自装 |
 | 🚀 `PLUS` 版 | [👉 下载最新 PLUS 固件](../../releases?q=PLUS&expanded=true) | OpenClash / PassWall2 / Docker / AdGuard Home 开箱即用 |
+| 👑 `PROMAX` 版 | [👉 下载最新 PROMAX 固件](../../releases?q=PROMAX&expanded=true) | PLUS 全家桶 + SQM 流控 / Argon 主题 / 带宽监控 / 统计图表 |
 
 > 💡 打开后列表**最上方**即为该版本最新固件；也可浏览 [全部 Releases](../../releases)。
 
@@ -54,17 +55,18 @@ OpenWrt / ImmortalWrt / AX6000 / MT7986A / JDCloud RE-CP-03 / WED / 云编译
 |------|----------|----------|
 | `PURE` 纯净版 | 希望系统轻量、稳定，按需自行安装插件的用户 | 完整网络功能栈 + 常用管理插件 |
 | `PLUS` 版 | 希望刷完即用常见扩展服务的用户 | 在纯净版基础上增加 OpenClash、PassWall2、Docker / Dockerman、AdGuard Home、DDNS、ttyd 终端、UPnP、WireGuard 管理界面、USB 打印（p910nd），以及分区扩容（partexp）、网络唤醒（wolplus）等实用插件 |
+| `PROMAX` 版 | 想要最全功能集合的用户 | 在 PLUS 版基础上再增加 SQM 智能流控、Argon 主题及配置面板、实时带宽监控（nlbwmon）、标准网络唤醒（wol）、统计图表（statistics） |
 
 ### 文件命名与附件说明
 
-Releases 页面每个版本包含以下文件（PURE 与 PLUS 分开发布）：
+Releases 页面每个版本包含以下文件（PURE / PLUS / PROMAX 分开发布）：
 
 | 文件 | 说明 |
 |------|------|
-| `源码作者-分支-pure/plus-filogic-jdcloud_re-cp-03-*-sysupgrade.itb` | 固件本体（联发科平台为 `.itb` 格式），用于系统内升级 |
+| `源码作者-分支-pure/plus/promax-filogic-jdcloud_re-cp-03-*-sysupgrade.itb` | 固件本体（联发科平台为 `.itb` 格式），用于系统内升级 |
 | `*-bl31-uboot.fip` / `*-preloader.bin`（bl2）/ `*-gpt.bin` | 启动链文件，首次刷入或重建分区时使用，详见刷机教程 |
 | `Config-配置-版本-作者-分支-时间.txt` | 本次编译使用的完整 `.config`，便于复现构建或二次定制 |
-| `Packages-配置-版本-作者-分支-时间.txt` | 外部插件（OpenClash / PassWall2 及依赖 feed）的仓库、分支与 commit 记录，仅 `PLUS` 版生成 |
+| `Packages-配置-版本-作者-分支-时间.txt` | 外部插件（OpenClash / PassWall2 及依赖 feed）的仓库、分支与 commit 记录，仅 `PLUS`/`PROMAX` 版生成 |
 | `sha256sums.txt` | 固件校验文件，刷机前请先校验 |
 
 > ⚠️ 百里**没有 factory 镜像**。联发科平台的首次刷入走 bl2/fip/gpt + U-Boot 路径，与高通平台的 factory 刷法完全不同。
@@ -112,9 +114,9 @@ Releases 页面每个版本包含以下文件（PURE 与 PLUS 分开发布）：
 
 ---
 
-## 🧱 构建机制（PURE / PLUS 如何隔离）
+## 🧱 构建机制（PURE / PLUS / PROMAX 如何隔离）
 
-- 两个版本由工作流参数 `WRT_PROFILE` 区分，所有 Plus 版逻辑（额外配置、feed、插件克隆）均由该条件隔离，**纯净版产物不受 Plus 版任何改动影响**。
+- 三个版本由工作流参数 `WRT_PROFILE` 区分：PLUS 在通用配置上叠加 `GENERAL_AX6000_PLUS.txt`，PROMAX 再叠加 `GENERAL_AX6000_PROMAX.txt`，按 kconfig 规则逐层覆盖，**纯净版产物不受 Plus/Promax 版任何改动影响**。
 - Plus 版插件来源唯一：LuCI 插件本体由 `Scripts/Packages.sh` 克隆到 `package/`（优先级高于 feeds），依赖包（xray、sing-box 等）由 `passwall_packages` feed 提供，避免同名包双重定义。
 - Plus 版配置 `Config/GENERAL_AX6000_PLUS.txt` 追加在通用配置之后，按 kconfig 规则覆盖纯净版关闭的选项（如 Docker 所需内核模块、`dnsmasq-full`）。
 - 编译缓存（ccache / 工具链）与版本无关，PURE 与 PLUS 共享同一份，不额外占用缓存配额。

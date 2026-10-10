@@ -67,7 +67,7 @@ fi
 #UPDATE_PACKAGE "homeproxy" "ones20250/homeproxy" "master"
 #UPDATE_PACKAGE "momo" "nikkinikki-org/OpenWrt-momo" "main"
 #UPDATE_PACKAGE "nikki" "nikkinikki-org/OpenWrt-nikki" "main"
-if [[ "${WRT_PROFILE^^}" == "PLUS" ]]; then
+if [[ "${WRT_PROFILE^^}" != "PURE" ]]; then
 	# LuCI 入口随 "pkg" 通配一并提取，依赖包（xray、sing-box、geodata 等）
 	# 由 passwall_packages feed 提供，避免同名包双重定义。
 	UPDATE_PACKAGE "openclash" "vernesong/OpenClash" "master" "pkg"

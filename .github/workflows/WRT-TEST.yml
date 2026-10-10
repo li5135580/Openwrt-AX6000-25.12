@@ -26,13 +26,14 @@ on:
         required: false
         type: string
       PROFILE:
-        description: '固件版本：PURE=纯净版，PLUS=Plus 版。'
+        description: '固件版本：PURE=纯净版，PLUS=Plus 版，PROMAX=Promax 版。'
         default: 'PURE'
         required: true
         type: choice
         options:
           - PURE
           - PLUS
+          - PROMAX
       TEST:
         description: '仅输出配置文件，不编译固件。'
         default: 'true'
