@@ -78,13 +78,7 @@ if [[ "${WRT_PROFILE^^}" != "PURE" ]]; then
 	UPDATE_PACKAGE "partexp" "sirpdboy/luci-app-partexp" "main"
 	# 唤醒增强已更名为 wolultra（wolplus/timewol 上游已移除）
 	UPDATE_PACKAGE "viking" "ones20250/packages" "main" "" "luci-app-wolultra"
-	# 主题：Design / Alpha（官方 feed 只有 argon/material，需从第三方克隆）
-	UPDATE_PACKAGE "luci-theme-design" "0x676e67/luci-theme-design" "main"
-	# design 主题版本号带连字符（5.8.0-20240106），apk 打包校验不通过，修正为 5.8.0.20240106
-	sed -i '/^PKG_VERSION:/{s/-/./g}' luci-theme-design/Makefile
-	UPDATE_PACKAGE "luci-app-design-config" "0x676e67/luci-app-design-config" "master"
-	UPDATE_PACKAGE "luci-theme-alpha" "derisamedia/luci-theme-alpha" "master"
-	UPDATE_PACKAGE "luci-app-alpha-config" "derisamedia/luci-app-alpha-config" "master"
+	# Design/Alpha 主题与新版 ucode LuCI 不兼容（模板崩后台），不再克隆，勿恢复
 fi
 
 #UPDATE_PACKAGE "mosdns" "sbwml/luci-app-mosdns" "v5" "" "v2dat"
