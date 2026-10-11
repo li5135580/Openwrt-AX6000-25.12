@@ -71,6 +71,7 @@ jobs:
       cache_prefix: ${{steps.initialize-cache.outputs.cache_prefix}}
       cache_key: ${{steps.initialize-cache.outputs.cache_key}}
       cache_started: ${{steps.initialize-cache.outputs.cache_started}}
+      cache_prefix_go: ${{steps.initialize-cache.outputs.cache_prefix_go}}
     steps:
       - name: Checkout Projects
         uses: actions/checkout@v4
@@ -277,6 +278,15 @@ jobs:
             echo "cache_started=$WRT_CACHE_STARTED"
           } >> "$GITHUB_OUTPUT"
 
+          # Go 构建缓存独立键（内容寻址，跨 commit 安全复用；与主缓存隔离，仅非 PURE 版使用）
+          WRT_GOCACHE_PREFIX="wrt-gocache-$WRT_CACHE_SOURCE-$WRT_CACHE_BRANCH-$WRT_TARGET-$WRT_SUBTARGET-$WRT_CONFIG"
+          WRT_GOCACHE_KEY="$WRT_GOCACHE_PREFIX-${{ github.run_id }}-$WRT_PROFILE"
+          {
+            echo "WRT_GOCACHE_PREFIX=$WRT_GOCACHE_PREFIX"
+            echo "WRT_GOCACHE_KEY=$WRT_GOCACHE_KEY"
+          } >> "$GITHUB_ENV"
+          echo "cache_prefix_go=$WRT_GOCACHE_PREFIX" >> "$GITHUB_OUTPUT"
+
       - name: Restore Build Cache
         id: check-cache
         if: env.WRT_TEST != 'true' && steps.changes.outputs.skip != 'true'
@@ -292,6 +302,19 @@ jobs:
             ./wrt/.ccache
             ./wrt/staging_dir/host*
             ./wrt/staging_dir/tool*
+
+      - name: Restore Go Build Cache
+        id: check-gocache
+        if: env.WRT_TEST != 'true' && env.WRT_PROFILE != 'PURE' && steps.changes.outputs.skip != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          # Go 缓存内容寻址，跨 commit 复用安全；键每次运行唯一，restore-keys 回退到最近一代
+          key: ${{env.WRT_GOCACHE_KEY}}
+          restore-keys: |
+            ${{env.WRT_GOCACHE_PREFIX}}-
+          path: |
+            ./wrt/tmp/go-build
+            ./wrt/dl/go-mod-cache
 
       - name: Prepare Restored Build Cache
         if: env.WRT_TEST != 'true' && steps.check-cache.outputs.cache-matched-key != '' && steps.changes.outputs.skip != 'true'
@@ -379,6 +402,16 @@ jobs:
             ./wrt/.ccache
             ./wrt/staging_dir/host*
             ./wrt/staging_dir/tool*
+
+      - name: Save Go Build Cache
+        if: env.WRT_TEST != 'true' && success() && env.WRT_PROFILE != 'PURE' && steps.changes.outputs.skip != 'true'
+        uses: actions/cache/save@v4
+        with:
+          # 键含 run_id 永远唯一，每次成功构建都保存新代；旧代由 cache-rollover 清理
+          key: ${{env.WRT_GOCACHE_KEY}}
+          path: |
+            ./wrt/tmp/go-build
+            ./wrt/dl/go-mod-cache
 
       - name: Machine Information
         if: steps.changes.outputs.skip != 'true'
@@ -531,6 +564,7 @@ jobs:
       WRT_CACHE_PREFIX: ${{needs.core.outputs.cache_prefix}}
       WRT_CACHE_KEY: ${{needs.core.outputs.cache_key}}
       WRT_CACHE_STARTED: ${{needs.core.outputs.cache_started}}
+      WRT_CACHE_PREFIX_GO: ${{needs.core.outputs.cache_prefix_go}}
     steps:
       - name: Roll Build Cache
         # 清理异常只警告，不把已发布固件标为构建失败。
@@ -553,3 +587,15 @@ jobs:
               gh cache delete "$CACHE_ID" --repo "$GH_REPO" ||
                 echo "::warning::Failed to delete cache $CACHE_ID"
             done
+
+          # Go 构建缓存滚动清理：键每次运行唯一，createdAt 早于本次启动的即旧代
+          # （PLUS/PROMAX 各存一份，PURE 无 Go 缓存故前缀可能为空）
+          if [ -n "${WRT_CACHE_PREFIX_GO:-}" ]; then
+            gh cache list --repo "$GH_REPO" --key "$WRT_CACHE_PREFIX_GO-" --ref "$GITHUB_REF" --limit 100 --json id,createdAt |
+              jq -r --arg started "$WRT_CACHE_STARTED" '.[] | select(.createdAt < $started) | .id' |
+              while IFS= read -r CACHE_ID; do
+                [ -n "$CACHE_ID" ] || continue
+                gh cache delete "$CACHE_ID" --repo "$GH_REPO" ||
+                  echo "::warning::Failed to delete go cache $CACHE_ID"
+              done
+          fi
