@@ -78,6 +78,11 @@ if [[ "${WRT_PROFILE^^}" != "PURE" ]]; then
 	UPDATE_PACKAGE "partexp" "sirpdboy/luci-app-partexp" "main"
 	# 唤醒增强已更名为 wolultra（wolplus/timewol 上游已移除）
 	UPDATE_PACKAGE "viking" "ones20250/packages" "main" "" "luci-app-wolultra"
+	# 主题：Design / Alpha（官方 feed 只有 argon/material，需从第三方克隆）
+	UPDATE_PACKAGE "luci-theme-design" "0x676e67/luci-theme-design" "main"
+	UPDATE_PACKAGE "luci-app-design-config" "0x676e67/luci-app-design-config" "master"
+	UPDATE_PACKAGE "luci-theme-alpha" "derisamedia/luci-theme-alpha" "master"
+	UPDATE_PACKAGE "luci-app-alpha-config" "derisamedia/luci-app-alpha-config" "master"
 fi
 
 #UPDATE_PACKAGE "mosdns" "sbwml/luci-app-mosdns" "v5" "" "v2dat"

@@ -72,17 +72,19 @@ mkdir -p files/etc
 } > files/etc/fw-build-info
 
 # =========================================================
-# 默认主题：PLUS/PROMAX 用 Argon，PURE 保持 bootstrap
+# 默认主题：PLUS/PROMAX 用 Design（缺失时回退 Argon），PURE 保持 bootstrap
 # =========================================================
 if [[ "${WRT_PROFILE^^}" != "PURE" ]]; then
 	mkdir -p files/etc/uci-defaults
 	cat > files/etc/uci-defaults/99-default-theme <<'EOF'
 #!/bin/sh
-# 仅在 argon 主题存在时切换，避免异常时 LuCI 无主题可用
-if [ -d /www/luci-static/argon ]; then
+# 优先 Design，缺失时回退 Argon，均不存在则保持 bootstrap
+if [ -d /www/luci-static/design ]; then
+	uci set luci.main.mediaurlbase='/luci-static/design'
+elif [ -d /www/luci-static/argon ]; then
 	uci set luci.main.mediaurlbase='/luci-static/argon'
-	uci commit luci
 fi
+uci commit luci
 exit 0
 EOF
 	chmod +x files/etc/uci-defaults/99-default-theme
