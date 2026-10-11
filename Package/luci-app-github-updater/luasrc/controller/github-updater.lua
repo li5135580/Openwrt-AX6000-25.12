@@ -9,6 +9,7 @@ local TAG_PREFIX = "MT798X-WIFI-YES-"
 local DATE_PAT   = "(%d%d%.%d%d%.%d%d%-%d%d%.%d%d%.%d%d)$"
 local FW_FILE    = "/tmp/github-fw.itb"
 local OK_MARK    = "/tmp/github-fw.verified"
+local STATE_FILE = "/tmp/github-fw.state"
 
 function index()
 	local page = entry({"admin", "system", "github-updater"},
@@ -206,6 +207,17 @@ function action_check()
 		ret.page        = rel.page
 		ret.changelog   = rel.changelog
 		ret.has_update  = (rel.date ~= "" and rel.date > info.FW_DATE)
+
+		-- 已下载并校验通过、且与最新版本一致的固件可直接复用，无需重复下载
+		if nfs.access(OK_MARK) and nfs.access(FW_FILE) then
+			local st = read_all(STATE_FILE) or ""
+			if st:match("tag=([^\n]+)") == rel.tag then
+				ret.pending = rel.tag
+				local sz = sys.exec("ls -l " .. FW_FILE ..
+					" | awk '{print $5}'"):gsub("%s+", "")
+				ret.pending_size = sz
+			end
+		end
 	end
 	jret(ret)
 end
@@ -218,13 +230,21 @@ function action_download()
 	end
 
 	local mirror = get_mirror()
-	os.execute("rm -f " .. FW_FILE .. " " .. OK_MARK)
 
-	local rc = sys.call("curl -sL --connect-timeout 15 -m 900 -o " ..
-		FW_FILE .. " " .. shq(mirror .. rel.url))
+	-- 状态文件记录的 url 与本次目标不一致 → 清掉旧残片从头下
+	local state = read_all(STATE_FILE) or ""
+	if state:match("url=([^\n]+)") ~= rel.url then
+		os.execute("rm -f " .. FW_FILE .. " " .. OK_MARK .. " " .. STATE_FILE)
+	end
+	-- 同一目标且已有部分文件 → 断点续传
+	local resumed = nfs.access(FW_FILE) ~= nil
+	local resume_flag = resumed and "-C -" or ""
+
+	local rc = sys.call("curl -sL --connect-timeout 15 -m 900 " .. resume_flag ..
+		" -o " .. FW_FILE .. " " .. shq(mirror .. rel.url))
 	if rc ~= 0 then
 		return jret({ ok = false, error = "下载失败（curl 错误码 " .. rc ..
-			(mirror ~= "" and "，当前使用代理前缀" or "，直连）") .. "）" })
+			(mirror ~= "" and "，当前使用代理前缀" or "，直连") .. "）；已下载进度已保留，可重试续传" })
 	end
 
 	-- 校验：atom 通道已有哈希；api 通道下载 sha256sums.txt
@@ -241,17 +261,34 @@ function action_download()
 		local actual = sys.exec("sha256sum " .. FW_FILE ..
 			" | awk '{print $1}'"):gsub("%s+", "")
 		if actual ~= expected then
-			os.remove(FW_FILE)
-			return jret({ ok = false, error = "SHA256 校验失败，已删除文件" })
+			-- 续传的文件可能被旧残片污染，清理后完整重下一次再校验
+			if resumed then
+				os.execute("rm -f " .. FW_FILE)
+				sys.call("curl -sL --connect-timeout 15 -m 900 -o " ..
+					FW_FILE .. " " .. shq(mirror .. rel.url))
+				actual = sys.exec("sha256sum " .. FW_FILE ..
+					" | awk '{print $1}'"):gsub("%s+", "")
+			end
+			if actual ~= expected then
+				os.remove(FW_FILE)
+				return jret({ ok = false, error = "SHA256 校验失败，已删除文件" })
+			end
 		end
 		verified = true
 	end
 
+	-- 记录状态：供续传识别与"已下载待升级"复用
+	local sf = io.open(STATE_FILE, "w")
+	if sf then
+		sf:write("tag=" .. rel.tag .. "\nurl=" .. rel.url .. "\n")
+		sf:close()
+	end
 	io.open(OK_MARK, "w"):close()
 	local sz = sys.exec("ls -l " .. FW_FILE ..
 		" | awk '{print $5}'"):gsub("%s+", "")
 	jret({ ok = true, file = FW_FILE, name = rel.name,
-	       size = sz, verified = verified, channel = rel.channel })
+	       size = sz, verified = verified, channel = rel.channel,
+	       resumed = resumed })
 end
 
 function action_upgrade()

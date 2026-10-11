@@ -75,7 +75,14 @@ function check() {
 		if (d.mirror) document.getElementById('ghu-mirror').value = d.mirror;
 		log('√ 检测通道：' + (d.channel === 'atom' ? 'releases.atom（github.com 直连）' : 'GitHub API'));
 		var st = document.getElementById('ghu-state');
-		if (d.has_update) {
+		if (d.pending) {
+			st.innerHTML = '<span class="ghu-new">● 新版本已下载待升级（' + d.pending + (d.pending_size ? '，' + fmtSize(d.pending_size) : '') + '）</span>';
+			document.getElementById('ghu-b3').removeAttribute('disabled');
+			log('√ 之前下载并校验通过的固件仍在，可直接点「开始升级」，无需重新下载');
+			if (d.has_update !== true && d.current && d.latest_date && d.latest_date <= d.current) {
+				log('△ 提示：当前固件已不旧于该版本，升级为重装');
+			}
+		} else if (d.has_update) {
 			st.innerHTML = '<span class="ghu-new">● 发现新版本，可以升级</span>';
 			document.getElementById('ghu-b2').removeAttribute('disabled');
 			log('√ 发现新版本：' + d.latest_date);
