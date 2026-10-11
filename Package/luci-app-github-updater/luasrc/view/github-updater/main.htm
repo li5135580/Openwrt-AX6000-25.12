@@ -27,7 +27,9 @@
 <div class="ghu-box">
 	<a class="ghu-btn" href="javascript:check()" id="ghu-b1"><%:检查更新%></a>
 	<a class="ghu-btn" href="javascript:dl()" id="ghu-b2" disabled><%:下载并校验固件%></a>
-	<label><input type="checkbox" id="ghu-keep" checked> <%:保留配置升级%></label>
+	<%-- LuCI 主题兼容：checkbox 必须 input 在前、label 在后，Argon/Design 才能正确渲染开关 --%>
+	<input class="cbi-input-checkbox" type="checkbox" id="ghu-keep" checked>
+	<label for="ghu-keep"><%:保留配置升级%></label>
 	<a class="ghu-btn" href="javascript:up()" id="ghu-b3" disabled style="background:#ffe9e9"><%:开始升级%></a>
 </div>
 
