@@ -244,9 +244,10 @@ jobs:
             # iStore 应用商店 feed（is-opkg 兼容 apk）
             echo "src-git istore https://github.com/linkease/istore.git;main" >> feeds.conf.default
             # iStore 应用生态 feed：DDNSTO 等 app-meta 元数据 + 服务本体 + LuCI 界面
-            echo "src-git nas-packages https://github.com/linkease/nas-packages.git;master" >> feeds.conf.default
-            echo "src-git nas-packages-luci https://github.com/linkease/nas-packages-luci.git;main" >> feeds.conf.default
-            echo "src-git app-meta https://github.com/linkease/openwrt-app-meta.git;main" >> feeds.conf.default
+            # （feed 名不允许带连字符，只能用字母/数字/下划线）
+            echo "src-git nas_packages https://github.com/linkease/nas-packages.git;master" >> feeds.conf.default
+            echo "src-git nas_packages_luci https://github.com/linkease/nas-packages-luci.git;main" >> feeds.conf.default
+            echo "src-git app_meta https://github.com/linkease/openwrt-app-meta.git;main" >> feeds.conf.default
           fi
 
       - name: Check Scripts
