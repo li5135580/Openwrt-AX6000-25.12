@@ -1,6 +1,6 @@
 <%+header%>
 <style>
-<%-- 主题自适应：不用写死的底色/文字色，全部继承主题变量，深浅主题均可读 --%>
+<%# 主题自适应：不用写死的底色/文字色，全部继承主题变量，深浅主题均可读 %>
 .ghu-box{border:1px solid rgba(128,128,128,.35);border-radius:6px;padding:12px 16px;margin:12px 0;background:transparent;color:inherit}
 .ghu-ok{color:#5cb85c;font-weight:bold}
 .ghu-new{color:#f0ad4e;font-weight:bold}
@@ -147,6 +147,7 @@ var polling = false;
 function poll() {
 	if (polling) return;
 	polling = true;
+	var lastSize = -1, stall = 0, hinted = false;
 	var timer = setInterval(function() {
 		api('progress', '', function(d) {
 			if (!d.ok && d.done) {
@@ -161,6 +162,12 @@ function poll() {
 				var bar = document.getElementById('ghu-bar-in');
 				bar.style.width = pct + '%';
 				bar.textContent = fmtSize(d.size) + (d.total ? ' / ' + fmtSize(d.total) + '（' + pct + '%）' : '');
+				// 停滞检测：12 秒无进展则提示可能是直连受阻
+				if (d.size === lastSize) { stall++; } else { stall = 0; lastSize = d.size; }
+				if (stall >= 12 && !hinted) {
+					hinted = true;
+					log('△ 下载 12 秒无进展——GitHub 直连可能受阻，建议在上方填代理前缀（如 https://ghfast.top/）保存后重试');
+				}
 				return;
 			}
 			clearInterval(timer); polling = false;

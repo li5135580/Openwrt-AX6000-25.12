@@ -270,9 +270,18 @@ function action_download()
 
 	os.remove(RC_FILE)
 	local resume = nfs.access(FW_FILE) and "-C -" or ""
-	sys.call("( curl -sL --connect-timeout 15 " .. resume .. " -o " ..
-		FW_FILE .. " " .. shq(get_mirror() .. rel.url) ..
-		"; echo $? > " .. RC_FILE .. " ) >/dev/null 2>&1 & echo $! > " .. PID_FILE)
+	-- 用启动脚本+setsid 脱离会话后台下载（避免嵌套引号问题，也防 uhttpd 请求结束时杀进程）
+	local lf = io.open("/tmp/github-fw.sh", "w")
+	if lf then
+		lf:write("#!/bin/sh\ncurl -sL --connect-timeout 15 " .. resume ..
+			" -o " .. FW_FILE .. " " .. shq(get_mirror() .. rel.url) ..
+			"\necho $? > " .. RC_FILE .. "\n")
+		lf:close()
+		sys.call("chmod +x /tmp/github-fw.sh")
+		sys.call("setsid /tmp/github-fw.sh </dev/null >/dev/null 2>&1 & echo $! > " .. PID_FILE)
+	else
+		return jret({ ok = false, error = "无法创建下载启动脚本" })
+	end
 
 	state_write({ tag = rel.tag, url = rel.url, name = rel.name,
 	              hash = rel.hash, sum_url = rel.sum_url,
@@ -316,10 +325,10 @@ function action_progress()
 		local actual = sys.exec("sha256sum " .. FW_FILE ..
 			" | awk '{print $1}'"):gsub("%s+", "")
 		if actual ~= expected then
-			-- 续传文件可能被旧残片污染：清理后完整重下一次
+			-- 续传文件可能被旧残片污染：清理后完整重下一次（走代理前缀）
 			os.execute("rm -f " .. FW_FILE)
 			sys.call("curl -sL --connect-timeout 15 -m 900 -o " ..
-				FW_FILE .. " " .. shq(st.url))
+				FW_FILE .. " " .. shq(get_mirror() .. st.url))
 			actual = sys.exec("sha256sum " .. FW_FILE ..
 				" | awk '{print $1}'"):gsub("%s+", "")
 			if actual ~= expected then
