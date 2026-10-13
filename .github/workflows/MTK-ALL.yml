@@ -34,7 +34,7 @@ permissions: write-all
 #排队等到执行时上游比对会发现刚编过，自动跳过，不会重复编译
 concurrency:
   group: mtk-all
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 #CI任务
 jobs:
