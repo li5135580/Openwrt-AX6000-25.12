@@ -90,6 +90,12 @@ fi
 if [[ "${WRT_PROFILE^^}" == "PROMAX" ]]; then
 	# SongLoft 音乐服务器（Go 源码编译，aarch64 支持；仅 PROMAX）
 	UPDATE_PACKAGE "songloft" "songloft-org/songloft-for-router" "main" "pkg"
+	# 修正出厂默认配置：包自带 db_path 为空，过不了 init 脚本校验导致服务无法启动
+	CFG="luci-app-songloft/root/etc/config/songloft"
+	if [ -f "$CFG" ]; then
+		sed -i "s/option enabled '0'/option enabled '1'/; s|option db_path ''|option db_path '/mnt/songloft'|" "$CFG"
+		echo "[+] songloft 默认配置已修正（enabled=1, db_path=/mnt/songloft）"
+	fi
 fi
 
 #UPDATE_PACKAGE "mosdns" "sbwml/luci-app-mosdns" "v5" "" "v2dat"
