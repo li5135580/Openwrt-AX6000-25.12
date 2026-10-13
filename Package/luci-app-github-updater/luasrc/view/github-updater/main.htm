@@ -10,6 +10,10 @@
 .ghu-bar-in{height:100%;width:0%;background:linear-gradient(90deg,#4a89dc,#5cb85c);transition:width .6s;text-align:center;font-size:11px;line-height:18px;color:#fff;white-space:nowrap}
 @keyframes ghu-indet{0%{left:-40%}100%{left:100%}}
 .ghu-bar-indet{position:relative;height:100%;width:40%;background:linear-gradient(90deg,#4a89dc,#5cb85c);animation:ghu-indet 1.1s infinite}
+<%# 自绘开关：原生 checkbox 在 Argon/Design 桌面端会被主题样式覆盖导致无法点击，改用按钮式开关彻底规避 %>
+.ghu-toggle{user-select:none}
+.ghu-toggle[data-on="1"]{background:#e6f4e6;border-color:#5cb85c;color:#2a7e2a}
+.ghu-toggle[data-on="0"]{background:#f6e6e6;border-color:#c05050;color:#c02020}
 #ghu-log{white-space:pre-wrap;background:#222;color:#ddd;padding:10px;border-radius:4px;font-family:monospace;font-size:12px;min-height:60px;max-height:280px;overflow:auto;margin-top:12px}
 </style>
 
@@ -31,9 +35,7 @@
 <div class="ghu-box">
 	<a class="ghu-btn" href="javascript:check()" id="ghu-b1"><%:检查更新%></a>
 	<a class="ghu-btn" href="javascript:dl()" id="ghu-b2" disabled><%:下载并校验固件%></a>
-	<%# LuCI 主题兼容：checkbox 必须 input 在前、label 在后，Argon/Design 才能正确渲染开关 %>
-	<input class="cbi-input-checkbox" type="checkbox" id="ghu-keep" checked>
-	<label for="ghu-keep"><%:保留配置升级%></label>
+	<a class="ghu-btn ghu-toggle" href="javascript:void(0)" id="ghu-keep" data-on="1"><%:保留配置升级：开%></a>
 	<a class="ghu-btn" href="javascript:up()" id="ghu-b3" disabled style="background:#ffe9e9"><%:开始升级%></a>
 	<div id="ghu-dlbar" style="display:none">
 		<div style="margin-top:8px;font-size:12px"><%:下载地址%>：<a id="ghu-dlurl" href="#" target="_blank" style="word-break:break-all"></a></div>
@@ -74,6 +76,13 @@ function fmtSize(b) {
 	b = parseInt(b); if (!b) return '';
 	return (b/1048576).toFixed(1) + ' MB';
 }
+
+// 保留配置开关：点击切换
+document.getElementById('ghu-keep').addEventListener('click', function() {
+	var on = this.getAttribute('data-on') === '1';
+	this.setAttribute('data-on', on ? '0' : '1');
+	this.textContent = on ? '保留配置升级：关' : '保留配置升级：开';
+});
 
 function check() {
 	log('正在检查更新…');
@@ -162,7 +171,7 @@ function poll() {
 }
 
 function up() {
-	var keep = document.getElementById('ghu-keep').checked;
+	var keep = document.getElementById('ghu-keep').getAttribute('data-on') === '1';
 	if (!confirm('确认开始升级？\n' + (keep ? '将保留当前配置。' : '将不保留配置（恢复出厂）！') + '\n升级过程中请勿断电。')) return;
 	document.getElementById('ghu-b3').setAttribute('disabled', '1');
 	document.getElementById('ghu-b1').setAttribute('disabled', '1');
