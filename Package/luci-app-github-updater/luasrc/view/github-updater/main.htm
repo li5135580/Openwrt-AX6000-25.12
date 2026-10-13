@@ -137,7 +137,7 @@ function dl() {
 		urlEl.textContent = d.url || '';
 		urlEl.href = d.url || '#';
 		document.getElementById('ghu-dlbar').style.display = 'block';
-		log(d.resumed ? '√ 从断点续传' : '√ 下载已开始');
+		log(d.resumed ? '√ 从断点续传' : '√ 下载已开始（共 ' + (d.sources || 1) + ' 个下载源，失败自动切换）');
 		if (d.already) log('△ 已有下载任务在进行中');
 		poll();
 	});
@@ -147,12 +147,22 @@ var polling = false;
 function poll() {
 	if (polling) return;
 	polling = true;
-	var lastSize = -1, stall = 0, hinted = false;
+	var lastSize = -1, stall = 0, hinted = false, errCount = 0;
 	var timer = setInterval(function() {
 		api('progress', '', function(d) {
+			// 进度查询连续失败 5 次则中止，不再无限死轮询
+			if (!d || d.ok === undefined || (d.ok === false && !d.done)) {
+				errCount++;
+				if (errCount >= 5) {
+					clearInterval(timer); polling = false;
+					log('× 进度查询连续失败，已停止（请刷新页面重试）');
+					document.getElementById('ghu-b2').removeAttribute('disabled');
+				}
+				return;
+			}
+			errCount = 0;
 			if (!d.ok && d.done) {
 				clearInterval(timer); polling = false;
-				document.getElementById('ghu-dlbar').style.display = 'none';
 				log('× ' + d.error);
 				document.getElementById('ghu-b2').removeAttribute('disabled');
 				return;
@@ -162,11 +172,11 @@ function poll() {
 				var bar = document.getElementById('ghu-bar-in');
 				bar.style.width = pct + '%';
 				bar.textContent = fmtSize(d.size) + (d.total ? ' / ' + fmtSize(d.total) + '（' + pct + '%）' : '');
-				// 停滞检测：12 秒无进展则提示可能是直连受阻
+				// 停滞检测：12 秒无进展则提示可能是直连受阻（多源回退会自动换源，无需干预）
 				if (d.size === lastSize) { stall++; } else { stall = 0; lastSize = d.size; }
 				if (stall >= 12 && !hinted) {
 					hinted = true;
-					log('△ 下载 12 秒无进展——GitHub 直连可能受阻，建议在上方填代理前缀（如 https://ghfast.top/）保存后重试');
+					log('△ 当前源 12 秒无进展，会自动尝试下一个下载源（直连 → 加速代理），请稍候');
 				}
 				return;
 			}

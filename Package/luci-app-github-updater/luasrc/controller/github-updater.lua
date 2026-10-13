@@ -205,7 +205,8 @@ end
 
 local function find_latest(info)
 	local rel, api_err = find_latest_api(info)
-	if rel then return rel end
+	-- API 通道找到了版本但没解析到固件资产时，同样回退 atom 通道
+	if rel and rel.url then return rel end
 	local atom_rel, atom_err = find_latest_atom(info, get_mirror())
 	if atom_rel then return atom_rel end
 	return nil, api_err .. "；" .. atom_err
@@ -248,46 +249,89 @@ function action_check()
 end
 
 -- 启动后台下载（立即返回，进度由 progress 接口轮询）
+-- 多源自动回退：GitHub release 资产经 302 跳转到 release-assets.githubusercontent.com，
+-- 该 CDN 在国内高干扰（表现为挂起 0 字节）；公共加速代理在服务端跟随 302，可绕开封锁
 function action_download()
 	local info = build_info()
 	local rel, err = find_latest(info)
 	if not rel or not rel.url then
 		return jret({ ok = false, error = err or "未找到固件下载地址" })
 	end
+	local mirror = get_mirror()
 
-	-- 目标版本变化 → 清掉旧残片从头下；同一目标则保留进度可续传
+	-- 下载源列表：手动代理前缀优先，其次直连，再依次回退公共加速代理
+	local urls = {}
+	if mirror ~= "" then table.insert(urls, mirror .. rel.url) end
+	table.insert(urls, rel.url)
+	for _, m in ipairs({ "https://ghfast.top/", "https://gh-proxy.com/",
+	                     "https://gh.llkk.cc/", "https://ghproxy.net/" }) do
+		table.insert(urls, m .. rel.url)
+	end
+
+	-- 补文件总大小（atom 通道没有 size，用 HEAD 逐个源拿 Content-Length）
+	local total = tonumber(rel.size)
+	if not total then
+		for _, u in ipairs(urls) do
+			local clen = sys.exec("curl -sIL --connect-timeout 8 -m 20 " .. shq(u) ..
+				" 2>/dev/null | grep -i '^content-length:' | tail -1 | tr -dc '0-9'")
+			if clen ~= "" then total = tonumber(clen); break end
+		end
+	end
+
+	-- 断点续传：仅当首选源与上次一致时续传，避免跨源续传污染
 	local st = state_read()
-	if st.url ~= rel.url then
-		os.execute("rm -f " .. FW_FILE .. " " .. OK_MARK .. " " ..
-			STATE_FILE .. " " .. RC_FILE .. " " .. PID_FILE)
+	local resume = ""
+	if st.first_url == urls[1] and nfs.access(FW_FILE) then
+		resume = "-C -"
+	else
+		os.execute("rm -f " .. FW_FILE .. " " .. OK_MARK)
 	end
 
 	-- 已在下载中则不重复启动
 	if nfs.access(PID_FILE) and not nfs.access(RC_FILE) then
 		return jret({ ok = true, started = false, already = true,
-		              total = tonumber(st.total) or rel.size, url = rel.url })
+		              total = total, url = rel.url })
 	end
 
-	os.remove(RC_FILE)
-	local resume = nfs.access(FW_FILE) and "-C -" or ""
-	-- 用启动脚本+setsid 脱离会话后台下载（避免嵌套引号问题，也防 uhttpd 请求结束时杀进程）
+	-- 生成下载启动脚本：逐源尝试，换源删残片；
+	-- --speed-limit/--speed-time 让"挂起 0 字节"在 20 秒内失败换源，不再永久卡死
 	local lf = io.open("/tmp/github-fw.sh", "w")
-	if lf then
-		lf:write("#!/bin/sh\ncurl -sL --connect-timeout 15 " .. resume ..
-			" -o " .. FW_FILE .. " " .. shq(get_mirror() .. rel.url) ..
-			"\necho $? > " .. RC_FILE .. "\n")
-		lf:close()
-		sys.call("chmod +x /tmp/github-fw.sh")
-		sys.call("setsid /tmp/github-fw.sh </dev/null >/dev/null 2>&1 & echo $! > " .. PID_FILE)
-	else
+	if not lf then
 		return jret({ ok = false, error = "无法创建下载启动脚本" })
+	end
+	lf:write("#!/bin/sh\nrm -f " .. RC_FILE .. "\nfirst=1\n")
+	for i, u in ipairs(urls) do
+		local rf = (i == 1) and resume or ""
+		lf:write("[ $first -eq 0 ] && rm -f " .. FW_FILE .. "\nfirst=0\n")
+		lf:write("echo " .. shq("trying: " .. u) .. " > /tmp/github-fw.trying\n")
+		lf:write("curl -fL " .. rf .. " --connect-timeout 8 --speed-limit 2048 --speed-time 20 --max-time 1800 -o " ..
+			FW_FILE .. " " .. shq(u) ..
+			" && { echo " .. shq("used=" .. u) .. " >> " .. STATE_FILE ..
+			"; echo 0 > " .. RC_FILE .. "; exit 0; }\n")
+	end
+	lf:write("echo 1 > " .. RC_FILE .. "\nexit 1\n")
+	lf:close()
+
+	sys.call("chmod +x /tmp/github-fw.sh")
+	os.remove(PID_FILE)
+	local launcher = "setsid"
+	if sys.call("command -v setsid >/dev/null 2>&1") ~= 0 then launcher = "" end
+	sys.call(launcher .. " /tmp/github-fw.sh </dev/null >/dev/null 2>&1 & echo $! > " .. PID_FILE)
+
+	-- 验证确实启动（1 秒后进程存活或固件文件已开始写入）
+	sys.call("sleep 1")
+	local pid = (read_all(PID_FILE) or ""):gsub("%s+", "")
+	local alive = pid ~= "" and sys.call("kill -0 " .. pid .. " 2>/dev/null") == 0
+	if not alive and not nfs.access(FW_FILE) then
+		return jret({ ok = false, error = "后台下载启动失败，请重试或检查系统日志" })
 	end
 
 	state_write({ tag = rel.tag, url = rel.url, name = rel.name,
 	              hash = rel.hash, sum_url = rel.sum_url,
-	              total = tostring(rel.size or "") })
-	jret({ ok = true, started = true, total = rel.size, url = rel.url,
-	       resumed = resume ~= "" })
+	              total = total and tostring(total) or "",
+	              first_url = urls[1] })
+	jret({ ok = true, started = true, total = total, url = rel.url,
+	       resumed = resume ~= "", sources = #urls })
 end
 
 -- 进度轮询：下载中报字节数；下载完成后执行校验并给最终结论
