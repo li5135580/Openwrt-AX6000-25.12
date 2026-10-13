@@ -98,16 +98,14 @@ CONFIG_PACKAGE_luci-proto-wireguard=y
 CONFIG_PACKAGE_xz-utils=y
 CONFIG_PACKAGE_luci-app-store=y
 
-# 主题集合：内置 Argon / Material（官方 feed）+ Design（js 分支克隆，新版 LuCI 专用）
-# 默认主题为 Design（由 Scripts/Settings.sh 对非 PURE 版注入 uci-defaults 设置，
-# Design 缺失时回退 Argon，再退 bootstrap）
+# 主题集合：内置 Argon + Design（js 分支，新 LuCI 专用，恒亮色）
+# 默认主题为 Argon（由 Scripts/Settings.sh 对非 PURE 版注入 uci-defaults 设置，
+# Design 缺失时回退 bootstrap；下拉框同步清理为仅实际编译的主题）
 # 注意：Design 的 main 分支和 Alpha 主题是旧 Lua 模板实现，与 master/25.12 的
-# ucode LuCI 根本冲突（选中即崩后台），Design 只能用 js 分支，Alpha 勿加回
+# ucode LuCI 根本冲突（选中即崩后台）；luci-app-design-config 与 js 分支不配套，勿加
 CONFIG_PACKAGE_luci-theme-argon=y
 CONFIG_PACKAGE_luci-app-argon-config=y
-CONFIG_PACKAGE_luci-theme-material=y
 CONFIG_PACKAGE_luci-theme-design=y
-CONFIG_PACKAGE_luci-app-design-config=y
 
 # USB 打印机支持（issue #11 用户请求；滚动内核无法事后 opkg 装 kmod，须随固件集成）
 CONFIG_PACKAGE_kmod-usb-printer=y

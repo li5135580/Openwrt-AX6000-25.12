@@ -72,18 +72,25 @@ mkdir -p files/etc
 } > files/etc/fw-build-info
 
 # =========================================================
-# 默认主题：PLUS/PROMAX 用 Design（js 分支，新 LuCI 兼容；缺失回退 Argon），
-# PURE 保持 bootstrap
+# 主题：PLUS/PROMAX 默认 Argon（Design 兜底，bootstrap 保底）；
+# 并清理主题下拉框——sysupgrade 保留配置时 /etc/config/luci 会残留
+# 未安装主题的选项，选中即跳回默认主题，这里按实际编译内容重建列表
 # =========================================================
 if [[ "${WRT_PROFILE^^}" != "PURE" ]]; then
 	mkdir -p files/etc/uci-defaults
 	cat > files/etc/uci-defaults/99-default-theme <<'EOF'
 #!/bin/sh
-# 优先 Design，缺失时回退 Argon，均不存在则保持 bootstrap
-if [ -d /www/luci-static/design ]; then
-	uci set luci.main.mediaurlbase='/luci-static/design'
-elif [ -d /www/luci-static/argon ]; then
+# 主题下拉框只保留实际编译进固件的主题
+uci -q delete luci.themes
+uci set luci.themes='internal'
+[ -d /www/luci-static/bootstrap ] && uci set luci.themes.Bootstrap='/luci-static/bootstrap'
+[ -d /www/luci-static/argon ] && uci set luci.themes.Argon='/luci-static/argon'
+[ -d /www/luci-static/design ] && uci set luci.themes.Design='/luci-static/design'
+# 默认主题：Argon，缺失回退 Design，再退 bootstrap
+if [ -d /www/luci-static/argon ]; then
 	uci set luci.main.mediaurlbase='/luci-static/argon'
+elif [ -d /www/luci-static/design ]; then
+	uci set luci.main.mediaurlbase='/luci-static/design'
 fi
 uci commit luci
 exit 0

@@ -81,8 +81,15 @@ if [[ "${WRT_PROFILE^^}" != "PURE" ]]; then
 	# Design 主题必须用 js 分支（JS/ucode 版，适配 21.x-24.x+ 新 LuCI）；
 	# main 分支是旧 Lua 模板版，新 LuCI 上一进后台就崩（__entries nil），切勿用 main
 	UPDATE_PACKAGE "luci-theme-design" "0x676e67/luci-theme-design" "js"
-	UPDATE_PACKAGE "luci-app-design-config" "0x676e67/luci-app-design-config" "master"
+	# js 分支只跟随系统亮暗（无 UI 开关），改为恒亮色：作废暗色媒体查询
+	sed -i 's/@media (prefers-color-scheme: dark)/@media (prefers-color-scheme: never)/g' luci-theme-design/htdocs/luci-static/design/css/style.css
+	# luci-app-design-config 是给 main（Lua）分支配套的，js 分支不读它的配置，勿克隆
 	# Alpha 主题同为旧 Lua 模板实现，不兼容新 LuCI，勿加回
+fi
+
+if [[ "${WRT_PROFILE^^}" == "PROMAX" ]]; then
+	# SongLoft 音乐服务器（Go 源码编译，aarch64 支持；仅 PROMAX）
+	UPDATE_PACKAGE "songloft" "songloft-org/songloft-for-router" "main" "pkg"
 fi
 
 #UPDATE_PACKAGE "mosdns" "sbwml/luci-app-mosdns" "v5" "" "v2dat"

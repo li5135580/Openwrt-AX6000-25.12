@@ -45,7 +45,7 @@ OpenWrt / ImmortalWrt / AX6000 / MT7986A / JDCloud RE-CP-03 / WED / 云编译
 |------|----------|----------|
 | 🍃 `PURE` 纯净版 | [👉 下载最新 PURE 固件](../../releases?q=PURE&expanded=true) | 轻量稳定，日常推荐，插件按需自装 |
 | 🚀 `PLUS` 版 | [👉 下载最新 PLUS 固件](../../releases?q=PLUS&expanded=true) | OpenClash / PassWall2 / Docker / AdGuard Home / iStore 商店 / Design 主题开箱即用 |
-| 👑 `PROMAX` 版 | [👉 下载最新 PROMAX 固件](../../releases?q=PROMAX&expanded=true) | PLUS 全家桶 + SQM 流控 / 带宽监控 / 统计图表 / DDNSTO 远程管理 |
+| 👑 `PROMAX` 版 | [👉 下载最新 PROMAX 固件](../../releases?q=PROMAX&expanded=true) | PLUS 全家桶 + SQM 流控 / 带宽监控 / 统计图表 / DDNSTO 远程管理 / SongLoft 音乐服务器 |
 
 > 💡 打开后列表**最上方**即为该版本最新固件；也可浏览 [全部 Releases](../../releases)。
 
@@ -54,8 +54,8 @@ OpenWrt / ImmortalWrt / AX6000 / MT7986A / JDCloud RE-CP-03 / WED / 云编译
 | 版本 | 适合人群 | 预置内容 |
 |------|----------|----------|
 | `PURE` 纯净版 | 希望系统轻量、稳定，按需自行安装插件的用户 | 完整网络功能栈 + 常用管理插件 |
-| `PLUS` 版 | 希望刷完即用常见扩展服务的用户 | 在纯净版基础上增加 OpenClash、PassWall2、Docker / Dockerman、AdGuard Home、DDNS、ttyd 终端、UPnP、WireGuard 管理界面、USB 打印（p910nd）、iStore 应用商店，以及分区扩容（partexp）、网络唤醒增强（wolultra）等实用插件；内置 Argon / Material / Design 三主题，默认主题为 Design（采用兼容新 LuCI 的 js 分支） |
-| `PROMAX` 版 | 想要最全功能集合的用户 | 在 PLUS 版基础上再增加 SQM 智能流控、实时带宽监控（nlbwmon）、统计图表（statistics）、DDNSTO 内网穿透远程管理（含 iStore 应用入口） |
+| `PLUS` 版 | 希望刷完即用常见扩展服务的用户 | 在纯净版基础上增加 OpenClash、PassWall2、Docker / Dockerman、AdGuard Home、DDNS、ttyd 终端、UPnP、WireGuard 管理界面、USB 打印（p910nd）、iStore 应用商店，以及分区扩容（partexp）、网络唤醒增强（wolultra）等实用插件；内置 Argon / Design 双主题，默认主题为 Argon（Design 采用兼容新 LuCI 的 js 分支，恒亮色） |
+| `PROMAX` 版 | 想要最全功能集合的用户 | 在 PLUS 版基础上再增加 SQM 智能流控、实时带宽监控（nlbwmon）、统计图表（statistics）、DDNSTO 内网穿透远程管理（含 iStore 应用入口）、SongLoft 音乐服务器（内嵌 Web UI + LuCI 管理页） |
 
 ### 文件命名与附件说明
 
@@ -184,7 +184,8 @@ Releases 页面每个版本包含以下文件（PURE / PLUS / PROMAX 分开发�
 | [ones20250/packages](https://github.com/ones20250/packages) | wolultra 网络唤醒增强插件 |
 | [linkease/istore](https://github.com/linkease/istore) | iStore 应用商店（feed 集成） |
 | [linkease/nas-packages](https://github.com/linkease/nas-packages) · [nas-packages-luci](https://github.com/linkease/nas-packages-luci) · [openwrt-app-meta](https://github.com/linkease/openwrt-app-meta) | DDNSTO 服务/LuCI 界面/应用元数据（feed 集成） |
-| [0x676e67/luci-theme-design](https://github.com/0x676e67/luci-theme-design)（js 分支）· [luci-app-design-config](https://github.com/0x676e67/luci-app-design-config) | Design 主题及配置面板 |
+| [0x676e67/luci-theme-design](https://github.com/0x676e67/luci-theme-design)（js 分支） | Design 主题 |
+| [songloft-org/songloft-for-router](https://github.com/songloft-org/songloft-for-router) | SongLoft 音乐服务器 OpenWrt 打包 |
 
 ### GitHub Actions 组件
 
