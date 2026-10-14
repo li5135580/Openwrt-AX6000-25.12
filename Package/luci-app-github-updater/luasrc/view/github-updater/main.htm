@@ -64,16 +64,19 @@ function log(m) {
 }
 function api(act, extra, cb) {
 	var x = new XMLHttpRequest();
+	var called = false;
+	function done(d) { if (!called) { called = true; cb(d); } }
 	x.open('GET', API + '/' + act + '?token=' + TOKEN + (extra || ''), true);
 	x.timeout = 120000;
 	x.onreadystatechange = function() {
 		if (x.readyState !== 4) return;
 		var d = null;
 		try { d = JSON.parse(x.responseText); } catch(e) {}
-		if (!d) { cb({ ok:false, error:'请求失败（HTTP ' + x.status + '）' }); return; }
-		cb(d);
+		if (!d) { done({ ok:false, error:'请求失败（HTTP ' + x.status + '）' }); return; }
+		done(d);
 	};
-	x.ontimeout = function(){ cb({ ok:false, error:'请求超时' }); };
+	x.ontimeout = function(){ done({ ok:false, error:'请求超时' }); };
+	x.onerror = function(){ done({ ok:false, error:'网络错误' }); };
 	x.send();
 }
 function fmtSize(b) {
@@ -148,21 +151,25 @@ function poll() {
 	if (polling) return;
 	polling = true;
 	var lastSize = -1, stall = 0, hinted = false, errCount = 0;
-	var timer = setInterval(function() {
+	// 递归 setTimeout：上一次请求完成后再发起下一次，避免 XHR 重叠乱序
+	function step() {
 		api('progress', '', function(d) {
-			// 进度查询连续失败 5 次则中止，不再无限死轮询
+			// 进度查询连续失败 5 次则中止并显示每次的错误详情
 			if (!d || d.ok === undefined || (d.ok === false && !d.done)) {
 				errCount++;
+				log('× 进度查询失败（' + errCount + '/5）：' + ((d && d.error) || '未知错误'));
 				if (errCount >= 5) {
-					clearInterval(timer); polling = false;
+					polling = false;
 					log('× 进度查询连续失败，已停止（请刷新页面重试）');
 					document.getElementById('ghu-b2').removeAttribute('disabled');
+					return;
 				}
+				setTimeout(step, 1000);
 				return;
 			}
 			errCount = 0;
 			if (!d.ok && d.done) {
-				clearInterval(timer); polling = false;
+				polling = false;
 				log('× ' + d.error);
 				document.getElementById('ghu-b2').removeAttribute('disabled');
 				return;
@@ -172,15 +179,16 @@ function poll() {
 				var bar = document.getElementById('ghu-bar-in');
 				bar.style.width = pct + '%';
 				bar.textContent = fmtSize(d.size) + (d.total ? ' / ' + fmtSize(d.total) + '（' + pct + '%）' : '');
-				// 停滞检测：12 秒无进展则提示可能是直连受阻（多源回退会自动换源，无需干预）
+				// 停滞检测：12 秒无进展则提示会自动换源
 				if (d.size === lastSize) { stall++; } else { stall = 0; lastSize = d.size; }
 				if (stall >= 12 && !hinted) {
 					hinted = true;
 					log('△ 当前源 12 秒无进展，会自动尝试下一个下载源（直连 → 加速代理），请稍候');
 				}
+				setTimeout(step, 1000);
 				return;
 			}
-			clearInterval(timer); polling = false;
+			polling = false;
 			var bar = document.getElementById('ghu-bar-in');
 			bar.style.width = '100%';
 			bar.textContent = '100%';
@@ -188,7 +196,8 @@ function poll() {
 			log(d.verified ? '√ SHA256 校验通过' : '△ 无校验信息，已跳过校验');
 			document.getElementById('ghu-b3').removeAttribute('disabled');
 		});
-	}, 1000);
+	}
+	step();
 }
 
 function up() {

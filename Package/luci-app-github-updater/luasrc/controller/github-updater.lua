@@ -89,7 +89,7 @@ end
 local function state_write(st)
 	local f = io.open(STATE_FILE, "w")
 	if not f then return end
-	for _, k in ipairs({"tag", "url", "name", "hash", "sum_url", "total"}) do
+	for _, k in ipairs({"tag", "url", "name", "hash", "sum_url", "total", "first_url"}) do
 		if st[k] then f:write(k .. "=" .. tostring(st[k]) .. "\n") end
 	end
 	f:close()
@@ -287,10 +287,15 @@ function action_download()
 		os.execute("rm -f " .. FW_FILE .. " " .. OK_MARK)
 	end
 
-	-- 已在下载中则不重复启动
+	-- 已在下载中则不重复启动；但 PID 已死（上次异常残留）则清理后重新启动
 	if nfs.access(PID_FILE) and not nfs.access(RC_FILE) then
-		return jret({ ok = true, started = false, already = true,
-		              total = total, url = rel.url })
+		local oldpid = (read_all(PID_FILE) or ""):gsub("%s+", "")
+		if oldpid ~= "" and sys.call("kill -0 " .. oldpid .. " 2>/dev/null") == 0 then
+			return jret({ ok = true, started = false, already = true,
+			              total = total, url = rel.url, sources = #urls })
+		end
+		-- 僵尸 PID：清理残留标记，继续走下面的正常启动流程
+		os.execute("rm -f " .. PID_FILE .. " " .. RC_FILE)
 	end
 
 	-- 生成下载启动脚本：逐源尝试，换源删残片；
@@ -307,9 +312,9 @@ function action_download()
 		lf:write("curl -fL " .. rf .. " --connect-timeout 8 --speed-limit 2048 --speed-time 20 --max-time 1800 -o " ..
 			FW_FILE .. " " .. shq(u) ..
 			" && { echo " .. shq("used=" .. u) .. " >> " .. STATE_FILE ..
-			"; echo 0 > " .. RC_FILE .. "; exit 0; }\n")
+			"; echo 0 > " .. RC_FILE .. ".tmp && mv " .. RC_FILE .. ".tmp " .. RC_FILE .. "; exit 0; }\n")
 	end
-	lf:write("echo 1 > " .. RC_FILE .. "\nexit 1\n")
+	lf:write("echo 1 > " .. RC_FILE .. ".tmp && mv " .. RC_FILE .. ".tmp " .. RC_FILE .. "\nexit 1\n")
 	lf:close()
 
 	sys.call("chmod +x /tmp/github-fw.sh")
@@ -369,19 +374,22 @@ function action_progress()
 		local actual = sys.exec("sha256sum " .. FW_FILE ..
 			" | awk '{print $1}'"):gsub("%s+", "")
 		if actual ~= expected then
-			-- 续传文件可能被旧残片污染：清理后完整重下一次（走代理前缀）
-			os.execute("rm -f " .. FW_FILE)
-			sys.call("curl -sL --connect-timeout 15 -m 900 -o " ..
-				FW_FILE .. " " .. shq(get_mirror() .. st.url))
-			actual = sys.exec("sha256sum " .. FW_FILE ..
-				" | awk '{print $1}'"):gsub("%s+", "")
+			-- 校验失败：state 有原始 url 才重下，缺失则直接报错（拼接 nil 会 500）
+			if st.url and st.url ~= "" then
+				os.execute("rm -f " .. FW_FILE)
+				sys.call("curl -sL --connect-timeout 10 --speed-limit 2048 --speed-time 20 -m 300 -o " ..
+					FW_FILE .. " " .. shq(get_mirror() .. st.url))
+				actual = sys.exec("sha256sum " .. FW_FILE ..
+					" | awk '{print $1}'"):gsub("%s+", "")
+			end
 			if actual ~= expected then
 				os.remove(FW_FILE)
 				return jret({ ok = false, done = true, size = 0,
 					error = "SHA256 校验失败，已删除文件" })
 			end
 		end
-		io.open(OK_MARK, "w"):close()
+		local mf = io.open(OK_MARK, "w")
+		if mf then mf:close() end
 		ret.verified = true
 	end
 
