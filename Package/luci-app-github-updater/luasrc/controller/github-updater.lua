@@ -240,8 +240,8 @@ function action_check()
 			local st = state_read()
 			if st.tag == rel.tag then
 				ret.pending = rel.tag
-				local sz = sys.exec("ls -l " .. FW_FILE ..
-					" | awk '{print $5}'"):gsub("%s+", "")
+				local sz = sys.exec("wc -c < " .. FW_FILE ..
+					" 2>/dev/null"):gsub("%s+", "")
 				ret.pending_size = sz
 			end
 		end
@@ -342,11 +342,10 @@ end
 
 -- 进度轮询：下载中报字节数；下载完成后执行校验并给最终结论
 function action_progress()
+	-- busybox 无 stat 命令，用 wc -c 读文件大小（多返回值需括号截断）
 	local size = 0
 	if nfs.access(FW_FILE) then
-		-- 注意：gsub 会返回 (结果, 替换次数) 两个值，直接链式传给 tonumber 会把
-		-- 替换次数当成进制参数导致崩溃；外层括号把多返回值截断为单个
-		size = tonumber((sys.exec("stat -c %s " .. FW_FILE ..
+		size = tonumber((sys.exec("wc -c < " .. FW_FILE ..
 			" 2>/dev/null"):gsub("%s+", ""))) or 0
 	end
 	local st = state_read()

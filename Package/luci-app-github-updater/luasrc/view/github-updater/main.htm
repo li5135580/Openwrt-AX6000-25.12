@@ -178,7 +178,10 @@ function poll() {
 				var pct = d.total ? Math.min(99, Math.floor(d.size * 100 / d.total)) : 0;
 				var bar = document.getElementById('ghu-bar-in');
 				bar.style.width = pct + '%';
-				bar.textContent = fmtSize(d.size) + (d.total ? ' / ' + fmtSize(d.total) + '（' + pct + '%）' : '');
+				// 速度 = 每秒增量（轮询间隔约 1 秒）
+				var speed = (lastSize >= 0 && d.size > lastSize) ? d.size - lastSize : 0;
+				var speedTxt = speed > 0 ? ' ' + (speed/1048576).toFixed(1) + ' MB/s' : '';
+				bar.textContent = fmtSize(d.size) + (d.total ? ' / ' + fmtSize(d.total) + '（' + pct + '%）' : '') + speedTxt;
 				// 停滞检测：12 秒无进展则提示会自动换源
 				if (d.size === lastSize) { stall++; } else { stall = 0; lastSize = d.size; }
 				if (stall >= 12 && !hinted) {
