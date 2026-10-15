@@ -260,6 +260,13 @@ function action_download()
 	end
 	local mirror = get_mirror()
 
+	-- 已下载并校验通过的固件存在时，本次调用视为"重新下载"：
+	-- 清理临时固件与全部状态，find_latest 已在上方重新读取最新版本
+	if nfs.access(OK_MARK) and nfs.access(FW_FILE) then
+		os.execute("rm -f " .. FW_FILE .. " " .. OK_MARK .. " " ..
+			STATE_FILE .. " " .. RC_FILE .. " " .. PID_FILE)
+	end
+
 	-- 下载源列表：手动代理前缀优先，其次直连，再依次回退公共加速代理
 	local urls = {}
 	if mirror ~= "" then table.insert(urls, mirror .. rel.url) end
