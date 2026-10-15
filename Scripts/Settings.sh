@@ -72,6 +72,32 @@ mkdir -p files/etc
 } > files/etc/fw-build-info
 
 # =========================================================
+# 中国区默认时区与 NTP（上游默认 UTC + apple/google NTP，国内不友好；
+# 仅在未自定义过时初始化，不覆盖用户已有设置）
+# =========================================================
+mkdir -p files/etc/uci-defaults
+cat > files/etc/uci-defaults/99-default-timezone <<'EOF'
+#!/bin/sh
+CUR=$(uci -q get system.@system[0].zonename)
+if [ -z "$CUR" ] || [ "$CUR" = "UTC" ]; then
+	uci set system.@system[0].timezone='CST-8'
+	uci set system.@system[0].zonename='Asia/Shanghai'
+fi
+CURSRV=$(uci -q get system.ntp.server)
+case "$CURSRV" in
+	*time.apple.com*|*time*.google.com*|"" )
+		uci -q delete system.ntp.server
+		uci add_list system.ntp.server='ntp.aliyun.com'
+		uci add_list system.ntp.server='cn.ntp.org.cn'
+		uci add_list system.ntp.server='ntp.tencent.com'
+		;;
+esac
+uci commit system
+exit 0
+EOF
+chmod +x files/etc/uci-defaults/99-default-timezone
+
+# =========================================================
 # 主题：PLUS/PROMAX 默认 Argon（Design 兜底，bootstrap 保底）；
 # 并清理主题下拉框——sysupgrade 保留配置时 /etc/config/luci 会残留
 # 未安装主题的选项，选中即跳回默认主题，这里按实际编译内容重建列表

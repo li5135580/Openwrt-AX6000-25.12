@@ -343,8 +343,10 @@ end
 function action_progress()
 	local size = 0
 	if nfs.access(FW_FILE) then
-		size = tonumber(sys.exec("stat -c %s " .. FW_FILE ..
-			" 2>/dev/null"):gsub("%s+", "")) or 0
+		-- 注意：gsub 会返回 (结果, 替换次数) 两个值，直接链式传给 tonumber 会把
+		-- 替换次数当成进制参数导致崩溃；外层括号把多返回值截断为单个
+		size = tonumber((sys.exec("stat -c %s " .. FW_FILE ..
+			" 2>/dev/null"):gsub("%s+", ""))) or 0
 	end
 	local st = state_read()
 	local ret = { ok = true, done = false, size = size,
@@ -355,7 +357,7 @@ function action_progress()
 	end
 
 	-- 下载结束，开始校验
-	local rc = tonumber((read_all(RC_FILE) or "1"):gsub("%s+", "")) or 1
+	local rc = tonumber(((read_all(RC_FILE) or "1"):gsub("%s+", ""))) or 1
 	os.execute("rm -f " .. RC_FILE .. " " .. PID_FILE)
 	if rc ~= 0 then
 		return jret({ ok = false, done = true, size = size,
