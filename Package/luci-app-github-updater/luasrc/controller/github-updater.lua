@@ -79,7 +79,8 @@ local function state_read()
 	local s = read_all(STATE_FILE)
 	if s then
 		for line in s:gmatch("[^\n]+") do
-			local k, v = line:match("^(%w+)=(.*)$")
+			-- 键名含下划线（sum_url/first_url），%w 之外须加 _
+			local k, v = line:match("^([%w_]+)=(.*)$")
 			if k then st[k] = v end
 		end
 	end
