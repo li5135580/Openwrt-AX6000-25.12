@@ -96,6 +96,25 @@ if [[ "${WRT_PROFILE^^}" == "PROMAX" ]]; then
 		sed -i "s/option enabled '0'/option enabled '1'/; s|option db_path ''|option db_path '/mnt/songloft'|" "$CFG"
 		echo "[+] songloft 默认配置已修正（enabled=1, db_path=/mnt/songloft）"
 	fi
+	# 版本自动跟进上游最新 release（打包仓库版本落后时改写 Makefile；
+	# Web UI 包哈希随版本变化，须重新下载计算；Web 包未就绪则保持不升）
+	SL_MK="songloft/Makefile"
+	if [ -f "$SL_MK" ]; then
+		SL_CUR=$(grep -m1 '^PKG_VERSION:=' "$SL_MK" | cut -d= -f2 | tr -d ' ')
+		SL_LATEST=$(curl -sL --connect-timeout 10 -m 30 "https://api.github.com/repos/songloft-org/songloft/releases/latest" | grep -oP '"tag_name":\s*"\Kv[0-9.]+' | sed 's/^v//')
+		if [ -n "$SL_LATEST" ] && [ "$SL_CUR" != "$SL_LATEST" ]; then
+			WEB_URL="https://github.com/songloft-org/songloft-player/releases/download/v${SL_LATEST}/songloft-web-embedded.tar.gz"
+			WEB_HASH=$(curl -sL --connect-timeout 10 -m 120 "$WEB_URL" | sha256sum | cut -d' ' -f1)
+			if [ -n "$WEB_HASH" ] && [ ${#WEB_HASH} -eq 64 ]; then
+				echo "[+] songloft 版本跟进: $SL_CUR -> $SL_LATEST"
+				sed -i "s/^PKG_VERSION:=.*/PKG_VERSION:=$SL_LATEST/; s/^PKG_RELEASE:=.*/PKG_RELEASE:=1/; s|^SONGLOFT_WEB_HASH:=.*|SONGLOFT_WEB_HASH:=$WEB_HASH|" "$SL_MK"
+			else
+				echo "[!] songloft v$SL_LATEST 的 Web UI 包尚未就绪，保持 v$SL_CUR"
+			fi
+		else
+			echo "[+] songloft 已是最新（v$SL_CUR）"
+		fi
+	fi
 fi
 
 #UPDATE_PACKAGE "mosdns" "sbwml/luci-app-mosdns" "v5" "" "v2dat"
