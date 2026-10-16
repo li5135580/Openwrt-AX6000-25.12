@@ -1,7 +1,7 @@
 # 🚀 ImmortalWrt 京东云百里 AX6000 固件（云编译 · 25.12 稳定分支）
 
 OpenWrt / ImmortalWrt / AX6000 / MT7986A / JDCloud RE-CP-03 / WED / 云编译
-> 基于 ImmortalWrt **openwrt-25.12 稳定分支**的定制固件，适配京东云无线宝百里 AX6000（RE-CP-03），每 6 小时自动检测上游修复并编译发布
+> 基于 ImmortalWrt **openwrt-25.12 稳定分支**的定制固件，适配京东云无线宝百里 AX6000（RE-CP-03），每 4 小时自动检测上游修复并编译发布
 
 > 🔀 **本仓库为 25.12 稳定分支版**：内核 6.12 LTS，只做修复性回填，适合养老日常使用。
 > 想要最新内核与特性？👉 **[master 滚动快照版 → Openwrt-AX6000](https://github.com/li5135580/Openwrt-AX6000)**
@@ -206,7 +206,7 @@ Releases 页面每个版本包含以下文件（PURE / PLUS / PROMAX 分开发�
 ### 触发编译
 
 - **本仓库变更即编译**：main 分支有任何推送（改配置、加插件）立即触发编译，不等定时检测。
-- **每 6 小时检测上游更新**：每 6 小时自动比对 immortalwrt openwrt-25.12 分支与插件仓库（PLUS 版含 OpenClash / PassWall2 等）相对上次 Release 是否有新 commit——**有变化立即编译**，均无变化则跳过不重复出包，上游修复最迟 6 小时内跟进。发布时 Release 正文会自动附带**本次相对上次的上游提交列表**，一眼看清更新了什么。
+- **每 4 小时检测上游更新**：每 4 小时自动比对 immortalwrt openwrt-25.12 分支与插件仓库（PLUS 版含 OpenClash / PassWall2 等）相对上次 Release 是否有新 commit——**有变化立即编译**，均无变化则跳过不重复出包，上游修复最迟 4 小时内跟进。发布时 Release 正文会自动附带**本次相对上次的上游提交列表**，一眼看清更新了什么。
 - **每日清理**：每天早上 6 点（北京时间）`Auto-Clean` 清理旧 Release（保留最近 100 个）与旧运行记录，完成后也会触发一次检测。
 - **手动编译**：Actions → `MTK-ALL` → Run workflow，同时构建 PURE 与 PLUS，手动触发跳过上游比对、永远直接编译。
 - **配置验证**：Actions → `WRT-TEST`，仅生成最终 `.config` 不编译固件，几分钟出结果。
