@@ -78,6 +78,16 @@ if [[ "${WRT_PROFILE^^}" != "PURE" ]]; then
 	UPDATE_PACKAGE "partexp" "sirpdboy/luci-app-partexp" "main"
 	# 唤醒增强已更名为 wolultra（wolplus/timewol 上游已移除）
 	UPDATE_PACKAGE "viking" "ones20250/packages" "main" "" "luci-app-wolultra"
+
+	# 临时规避：上游 miniupnpd 2.3.11 与加固补丁 020-descr-filter-fix.patch 漂移
+	#（hunk 大量失败），该补丁是解析器加固、缺失不影响功能，先移除保证可编译；
+	# 上游刷新补丁或发新版后此条件自动失效
+	MK="../feeds/packages/net/miniupnpd/Makefile"
+	PCH="../feeds/packages/net/miniupnpd/patches/020-descr-filter-fix.patch"
+	if [ -f "$MK" ] && grep -q "^PKG_VERSION:=2\.3\.11" "$MK" && [ -f "$PCH" ]; then
+		rm -f "$PCH"
+		echo "[!] miniupnpd 020 补丁与 2.3.11 漂移，已临时移除（等上游刷新）"
+	fi
 	# Design 主题必须用 js 分支（JS/ucode 版，适配 21.x-24.x+ 新 LuCI）；
 	# main 分支是旧 Lua 模板版，新 LuCI 上一进后台就崩（__entries nil），切勿用 main
 	UPDATE_PACKAGE "luci-theme-design" "0x676e67/luci-theme-design" "js"
