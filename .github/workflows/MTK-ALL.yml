@@ -39,7 +39,7 @@ concurrency:
 #CI任务
 jobs:
   config:
-    name: ${{matrix.CONFIG}}
+    name: ${{matrix.CONFIG}}-${{matrix.PROFILE}}
     strategy:
       fail-fast: false
       #max-parallel: 3

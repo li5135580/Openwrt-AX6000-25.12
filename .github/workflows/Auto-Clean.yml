@@ -13,12 +13,34 @@ jobs:
   auto_clean:
     runs-on: ubuntu-latest
     steps:
-      - name: Delete old Releases and Workflows
+      # 按版本（PURE/PLUS/PROMAX）分组保留，每组各留最新 2 个 Release；
+      # 防止某版本因上游无变化跳过编译后，其最后一个 Release 被挤掉
+      - name: Delete old Releases per profile
+        env:
+          GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        run: |
+          set -e
+          gh api "repos/$GITHUB_REPOSITORY/releases?per_page=100" --paginate \
+            --jq '.[] | [.id, .tag_name] | @tsv' > /tmp/releases.tsv
+          declare -A seen
+          # releases 按创建时间倒序返回，每组前 2 个保留，其余删除
+          while IFS=$'\t' read -r id tag; do
+            prof=$(echo "$tag" | grep -oE '(PURE|PLUS|PROMAX)' | head -1)
+            [ -z "$prof" ] && continue
+            seen[$prof]=$(( ${seen[$prof]:-0} + 1 ))
+            if [ "${seen[$prof]}" -gt 2 ]; then
+              echo "删除旧版: $tag"
+              gh api -X DELETE "repos/$GITHUB_REPOSITORY/releases/$id" || echo "::warning::删除 Release 失败 $tag"
+              gh api -X DELETE "repos/$GITHUB_REPOSITORY/git/refs/tags/$tag" || true
+            fi
+          done < /tmp/releases.tsv
+          echo "清理完成"
+
+      - name: Delete old Workflow runs
         uses: ophub/delete-releases-workflows@main
         with:
           gh_token: ${{secrets.GITHUB_TOKEN}}
-          delete_releases: true
-          releases_keep_latest: 6
-          delete_tags: true
+          delete_releases: false
+          delete_tags: false
           delete_workflows: true
           workflows_keep_day: 0
