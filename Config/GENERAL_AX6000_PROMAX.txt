@@ -16,9 +16,10 @@ CONFIG_PACKAGE_luci-app-ddnsto=y
 CONFIG_PACKAGE_luci-i18n-ddnsto-zh-cn=y
 CONFIG_PACKAGE_app-meta-ddnsto=y
 
-# SongLoft 音乐服务器（Go 源码编译，完整版内嵌 Web UI，配套 LuCI 管理页）
-CONFIG_PACKAGE_songloft=y
-CONFIG_PACKAGE_luci-app-songloft=y
+# SongLoft 已移除（上游版本跟进机制连续引发构建失败，2026-10-20 起禁用；
+# 如需恢复取消下行注释即可，Packages.sh 中的对应段一并取消）
+#CONFIG_PACKAGE_songloft=y
+#CONFIG_PACKAGE_luci-app-songloft=y
 
 # Argon 主题与 iStore 商店已在 PLUS 版集成（默认主题即 Argon），此处无需重复；
 # luci-app-wol 与 PLUS 的 wolultra 功能重复，不再集成

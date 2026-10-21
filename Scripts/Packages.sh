@@ -97,42 +97,8 @@ if [[ "${WRT_PROFILE^^}" != "PURE" ]]; then
 	# Alpha 主题同为旧 Lua 模板实现，不兼容新 LuCI，勿加回
 fi
 
-if [[ "${WRT_PROFILE^^}" == "PROMAX" ]]; then
-	# SongLoft 音乐服务器（Go 源码编译，aarch64 支持；仅 PROMAX）
-	UPDATE_PACKAGE "songloft" "songloft-org/songloft-for-router" "main" "pkg"
-	# 修正出厂默认配置：包自带 db_path 为空，过不了 init 脚本校验导致服务无法启动
-	CFG="luci-app-songloft/root/etc/config/songloft"
-	if [ -f "$CFG" ]; then
-		sed -i "s/option enabled '0'/option enabled '1'/; s|option db_path ''|option db_path '/mnt/songloft'|" "$CFG"
-		echo "[+] songloft 默认配置已修正（enabled=1, db_path=/mnt/songloft）"
-	fi
-	# 版本自动跟进上游最新 release
-	# 两个哈希必须同时更新：PKG_HASH（源码包）+ SONGLOFT_WEB_HASH（Web 包）
-	# Web 包哈希取 API 资产 digest（权威）；源码包是 codeload 自动生成无 API digest，
-	# 须下载计算——且必须先验证是合法 gzip（早前管道直算曾把 404 页哈希写进去）
-	SL_MK="songloft/Makefile"
-	if [ -f "$SL_MK" ]; then
-		SL_CUR=$(grep -m1 '^PKG_VERSION:=' "$SL_MK" | cut -d= -f2 | tr -d ' ')
-		SL_LATEST=$(curl -sL --connect-timeout 10 -m 30 "https://api.github.com/repos/songloft-org/songloft/releases/latest" | grep -oP '"tag_name":\s*"\Kv[0-9.]+' | sed 's/^v//')
-		if [ -n "$SL_LATEST" ] && [ "$SL_CUR" != "$SL_LATEST" ]; then
-			WEB_DIGEST=$(curl -sL --connect-timeout 10 -m 30 "https://api.github.com/repos/songloft-org/songloft-player/releases/tags/v${SL_LATEST}" | jq -r '.assets[] | select(.name=="songloft-web-embedded.tar.gz") | .digest' | sed 's/^sha256://')
-			SRC_HASH=""
-			if curl -sL --connect-timeout 10 -m 120 -o /tmp/sl-src.tar.gz "https://codeload.github.com/songloft-org/songloft/tar.gz/v${SL_LATEST}" \
-				&& gzip -t /tmp/sl-src.tar.gz 2>/dev/null && [ $(wc -c < /tmp/sl-src.tar.gz) -gt 1000000 ]; then
-				SRC_HASH=$(sha256sum /tmp/sl-src.tar.gz | cut -d' ' -f1)
-			fi
-			if [ -n "$WEB_DIGEST" ] && [ ${#WEB_DIGEST} -eq 64 ] && [ "$WEB_DIGEST" != "null" ] && [ -n "$SRC_HASH" ]; then
-				echo "[+] songloft 版本跟进: $SL_CUR -> $SL_LATEST"
-				sed -i "s/^PKG_VERSION:=.*/PKG_VERSION:=$SL_LATEST/; s/^PKG_RELEASE:=.*/PKG_RELEASE:=1/; s|^SONGLOFT_WEB_HASH:=.*|SONGLOFT_WEB_HASH:=$WEB_DIGEST|; s|^PKG_HASH:=.*|PKG_HASH:=$SRC_HASH|" "$SL_MK"
-			else
-				echo "[!] songloft v$SL_LATEST 的 Web 包 digest 或源码包未就绪，保持 v$SL_CUR"
-			fi
-			rm -f /tmp/sl-src.tar.gz
-		else
-			echo "[+] songloft 已是最新（v$SL_CUR）"
-		fi
-	fi
-fi
+# SongLoft 已于 2026-10-20 移除（版本跟进机制连续引发构建失败）。
+# 如需恢复：取消 Config/GENERAL_AX6000_PROMAX.txt 中两行注释，并恢复此处克隆段。
 
 #UPDATE_PACKAGE "mosdns" "sbwml/luci-app-mosdns" "v5" "" "v2dat"
 
