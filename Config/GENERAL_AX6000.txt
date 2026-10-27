@@ -4,11 +4,7 @@
 CONFIG_PACKAGE_luci-app-autoreboot=y
 CONFIG_PACKAGE_luci-app-netspeedtest=n
 CONFIG_PACKAGE_luci-app-partexp=y
-CONFIG_PACKAGE_luci-app-samba4=y
-#CONFIG_PACKAGE_luci-app-sqm=y
-#CONFIG_PACKAGE_sqm-scripts-nss=y
 CONFIG_PACKAGE_luci-app-wolultra=y
-CONFIG_PACKAGE_luci-app-sentinel=y
 CONFIG_PACKAGE_luci-app-arpbind=y
 CONFIG_PACKAGE_luci-app-firewall=n
 CONFIG_PACKAGE_luci-app-firewall4=y
@@ -62,38 +58,8 @@ CONFIG_PACKAGE_kmod-nft-tproxy=y
 CONFIG_PACKAGE_kmod-nft-xfrm=y
 CONFIG_PACKAGE_kmod-sound-core=n
 CONFIG_PACKAGE_kmod-tun=y
-CONFIG_PACKAGE_kmod-usb3=y
-CONFIG_PACKAGE_kmod-usb-audio=n
-CONFIG_PACKAGE_kmod-usb-serial-qualcomm=n
-CONFIG_PACKAGE_kmod-usb-core=y
-CONFIG_PACKAGE_kmod-usb-dwc3=y
-CONFIG_PACKAGE_kmod-usb-net=y
-CONFIG_PACKAGE_kmod-usb-net-asix=y
-CONFIG_PACKAGE_kmod-usb-net-asix-ax88179=y
-CONFIG_PACKAGE_kmod-usb-net-cdc-eem=n
-CONFIG_PACKAGE_kmod-usb-net-cdc-ether=n
-CONFIG_PACKAGE_kmod-usb-net-cdc-mbim=n
-CONFIG_PACKAGE_kmod-usb-net-cdc-ncm=n
-CONFIG_PACKAGE_kmod-usb-net-cdc-subset=n
-CONFIG_PACKAGE_kmod-usb-net-huawei-cdc-ncm=n
-# iPhone USB 共享
-CONFIG_PACKAGE_kmod-usb-net-ipheth=n
-CONFIG_PACKAGE_kmod-usb-net-qmi-wwan=y
-CONFIG_PACKAGE_kmod-usb-net-qmi-wwan-fibocom=y
-CONFIG_PACKAGE_kmod-usb-net-qmi-wwan-quectel=y
-# 安卓 RNDIS 共享
-CONFIG_PACKAGE_kmod-usb-net-rndis=n
-CONFIG_PACKAGE_kmod-usb-net-rtl8150=n
-CONFIG_PACKAGE_kmod-usb-net-rtl8152=y
-CONFIG_PACKAGE_kmod-usb-net-sierrawireless=n
-CONFIG_PACKAGE_kmod-usb-ohci=n
-CONFIG_PACKAGE_kmod-usb-storage=y
-CONFIG_PACKAGE_kmod-usb-storage-extras=y
-CONFIG_PACKAGE_kmod-usb-storage-uas=y
-CONFIG_PACKAGE_kmod-usb-uhci=n
-CONFIG_PACKAGE_kmod-usb-xhci=y
-#不用 Docker / Podman → 可关
-CONFIG_PACKAGE_kmod-veth=n
+# 百里（RE-CP-03）无 USB 接口（上游设备定义 DEVICE_PACKAGES 也不含 USB 包），
+# USB 全家桶（usb3/storage/net/modeswitch/usbutils/automount 等）已全部移除
 CONFIG_PACKAGE_kmod-wireguard=y
 CONFIG_PACKAGE_kmod-mmc=y
 CONFIG_PACKAGE_kmod-sdhci=y
@@ -105,8 +71,6 @@ CONFIG_PACKAGE_perl=n
 CONFIG_PACKAGE_libopenssl=y
 CONFIG_PACKAGE_libopenssl-conf=y
 CONFIG_PACKAGE_iptasn=y
-# U 盘自动挂载
-CONFIG_PACKAGE_automount=y
 CONFIG_PACKAGE_blkid=y
 CONFIG_PACKAGE_cfdisk=y
 CONFIG_PACKAGE_cgdisk=y
@@ -136,9 +100,7 @@ CONFIG_PACKAGE_openssl-util=y
 CONFIG_PACKAGE_proto-bonding=n
 CONFIG_PACKAGE_sfdisk=y
 CONFIG_PACKAGE_sgdisk=y
-CONFIG_PACKAGE_usb-modeswitch=y
 CONFIG_PACKAGE_usbmuxd=n
-CONFIG_PACKAGE_usbutils=y
 
 # 百里无 LED 点阵屏，雅典娜 athena-led 组件已移除
 
@@ -152,7 +114,6 @@ CONFIG_PACKAGE_tune2fs=y
 
 # 无线调节增强
 CONFIG_PACKAGE_iwinfo=y
-CONFIG_PACKAGE_luci-app-wireless-regdb=y
 #老优化，副作用大
 CONFIG_PACKAGE_skb_recycler=n
 

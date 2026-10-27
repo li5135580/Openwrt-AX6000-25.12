@@ -43,9 +43,9 @@ OpenWrt / ImmortalWrt / AX6000 / MT7986A / JDCloud RE-CP-03 / WED / 云编译
 
 | 版本 | 下载入口 | 适合场景 |
 |------|----------|----------|
-| 🍃 `PURE` 纯净版 | [👉 下载最新 PURE 固件](../../releases?q=PURE&expanded=true) | 轻量稳定，日常推荐，插件按需自装 |
-| 🚀 `PLUS` 版 | [👉 下载最新 PLUS 固件](../../releases?q=PLUS&expanded=true) | OpenClash / PassWall2 / Docker / AdGuard Home / iStore 商店 / Design 主题开箱即用 |
-| 👑 `PROMAX` 版 | [👉 下载最新 PROMAX 固件](../../releases?q=PROMAX&expanded=true) | PLUS 全家桶 + SQM 流控 / 带宽监控 / 统计图表 / DDNSTO 远程管理 / SongLoft 音乐服务器 |
+| 🍃 `Pure` 纯净版 | [👉 下载最新 Pure 固件](../../releases?q=PURE&expanded=true) | 轻量稳定，日常推荐，插件按需自装 |
+| 🚀 `Plus` 版 | [👉 下载最新 Plus 固件](../../releases?q=PLUS&expanded=true) | OpenClash / Docker / AdGuard Home / iStore 商店 / Design 主题开箱即用 |
+| 👑 `ProMax` 版 | [👉 下载最新 ProMax 固件](../../releases?q=PROMAX&expanded=true) | Plus 全家桶 + 实时带宽监控 / DDNSTO 远程管理 |
 
 > 💡 打开后列表**最上方**即为该版本最新固件；也可浏览 [全部 Releases](../../releases)。
 
@@ -53,9 +53,9 @@ OpenWrt / ImmortalWrt / AX6000 / MT7986A / JDCloud RE-CP-03 / WED / 云编译
 
 | 版本 | 适合人群 | 预置内容 |
 |------|----------|----------|
-| `PURE` 纯净版 | 希望系统轻量、稳定，按需自行安装插件的用户 | 完整网络功能栈 + 常用管理插件 |
-| `PLUS` 版 | 希望刷完即用常见扩展服务的用户 | 在纯净版基础上增加 OpenClash、PassWall2、Docker / Dockerman、AdGuard Home、DDNS、ttyd 终端、UPnP、WireGuard 管理界面、USB 打印（p910nd）、iStore 应用商店，以及分区扩容（partexp）、网络唤醒增强（wolultra）等实用插件；内置 Argon / Design 双主题，默认主题为 Argon（Design 采用兼容新 LuCI 的 js 分支，恒亮色） |
-| `PROMAX` 版 | 想要最全功能集合的用户 | 在 PLUS 版基础上再增加 SQM 智能流控、实时带宽监控（nlbwmon）、统计图表（statistics）、DDNSTO 内网穿透远程管理（含 iStore 应用入口）、SongLoft 音乐服务器（内嵌 Web UI + LuCI 管理页） |
+| `Pure` 纯净版 | 希望系统轻量、稳定，按需自行安装插件的用户 | 完整网络功能栈 + 常用管理插件（分区扩容、网络唤醒增强、ARP 绑定、定时重启等） |
+| `Plus` 版 | 希望刷完即用常见扩展服务的用户 | 在纯净版基础上增加 OpenClash、Docker / Dockerman、AdGuard Home、DDNS、ttyd 终端、UPnP、WireGuard 管理界面、iStore 应用商店等实用插件；内置 Argon / Design 双主题，默认主题为 Argon（Design 采用兼容新 LuCI 的 js 分支，恒亮色） |
+| `ProMax` 版 | 想要最全功能集合的用户 | 在 Plus 版基础上再增加实时带宽监控（nlbwmon）、DDNSTO 内网穿透远程管理（含 iStore 应用入口） |
 
 ### 文件命名与附件说明
 
@@ -66,7 +66,7 @@ Releases 页面每个版本包含以下文件（PURE / PLUS / PROMAX 分开发�
 | `源码作者-分支-pure/plus/promax-filogic-jdcloud_re-cp-03-*-sysupgrade.itb` | 固件本体（联发科平台为 `.itb` 格式），用于系统内升级 |
 | `*-bl31-uboot.fip` / `*-preloader.bin`（bl2）/ `*-gpt.bin` | 启动链文件，首次刷入或重建分区时使用，详见刷机教程 |
 | `Config-配置-版本-作者-分支-时间.txt` | 本次编译使用的完整 `.config`，便于复现构建或二次定制 |
-| `Packages-配置-版本-作者-分支-时间.txt` | 外部插件（OpenClash / PassWall2 及依赖 feed）的仓库、分支与 commit 记录，仅 `PLUS`/`PROMAX` 版生成 |
+| `Packages-配置-版本-作者-分支-时间.txt` | 外部插件（OpenClash / partexp / wolultra / Design 主题等）的仓库、分支与 commit 记录，仅 `Plus`/`ProMax` 版生成 |
 | `sha256sums.txt` | 固件校验文件，刷机前请先校验 |
 
 > ⚠️ 百里**没有 factory 镜像**。联发科平台的首次刷入走 bl2/fip/gpt + U-Boot 路径，与高通平台的 factory 刷法完全不同。
@@ -114,26 +114,26 @@ Releases 页面每个版本包含以下文件（PURE / PLUS / PROMAX 分开发�
 
 ---
 
-## 🧱 构建机制（PURE / PLUS / PROMAX 如何隔离）
+## 🧱 构建机制（Pure / Plus / ProMax 如何隔离）
 
-- 三个版本由工作流参数 `WRT_PROFILE` 区分：PLUS 在通用配置上叠加 `GENERAL_AX6000_PLUS.txt`，PROMAX 再叠加 `GENERAL_AX6000_PROMAX.txt`，按 kconfig 规则逐层覆盖，**纯净版产物不受 Plus/Promax 版任何改动影响**。
-- Plus 版插件来源唯一：LuCI 插件本体由 `Scripts/Packages.sh` 克隆到 `package/`（优先级高于 feeds），依赖包（xray、sing-box 等）由 `passwall_packages` feed 提供，避免同名包双重定义。
+- 三个版本由工作流参数 `WRT_PROFILE` 区分：Plus 在通用配置上叠加 `GENERAL_AX6000_PLUS.txt`，ProMax 再叠加 `GENERAL_AX6000_PROMAX.txt`，按 kconfig 规则逐层覆盖，**纯净版产物不受 Plus/ProMax 版任何改动影响**。
+- Plus 版插件来源唯一：LuCI 插件本体由 `Scripts/Packages.sh` 克隆到 `package/`（优先级高于 feeds），OpenClash 核心二进制由运行时自行下载。
 - Plus 版配置 `Config/GENERAL_AX6000_PLUS.txt` 追加在通用配置之后，按 kconfig 规则覆盖纯净版关闭的选项（如 Docker 所需内核模块、`dnsmasq-full`）。
-- 编译缓存（ccache / 工具链）与版本无关，PURE 与 PLUS 共享同一份，不额外占用缓存配额。
+- 编译缓存（ccache / 工具链）与版本无关，三个版本共享同一份，不额外占用缓存配额。
 
 ### 版本与验证建议
 
-- `PURE`：推荐作为日常稳定版，保持当前轻量配置。
-- `PLUS`：Plus 版会额外集成 OpenClash、PassWall2、Docker / Dockerman、AdGuard Home、DDNS、ttyd、UPnP 等，固件体积和运行资源占用都会明显高于纯净版。
-- 手动测试时可在 `WRT-TEST` 工作流选择 `PROFILE=PURE` 或 `PROFILE=PLUS`；建议 Plus 版发布前至少先用 `TEST=true` 生成最终 `.config`，再用完整编译确认上游插件依赖没有变化。
-- Release 会额外上传 `Packages-*.txt` 记录 Plus 版外部插件仓库、分支和 commit，方便排查 OpenClash / PassWall2 上游变更导致的编译问题。
+- `Pure`：推荐作为日常稳定版，保持当前轻量配置。
+- `Plus`：会额外集成 OpenClash、Docker / Dockerman、AdGuard Home、DDNS、ttyd、UPnP、iStore 商店等，固件体积和运行资源占用都会明显高于纯净版。
+- 手动测试时可在 `WRT-TEST` 工作流选择 `PROFILE=PURE/PLUS/PROMAX`；建议 Plus/ProMax 版发布前至少先用 `TEST=true` 生成最终 `.config`，再用完整编译确认上游插件依赖没有变化。
+- Release 会额外上传 `Packages-*.txt` 记录 Plus 版外部插件仓库、分支和 commit，方便排查 OpenClash 等上游变更导致的编译问题。
 
 > ⚠️ Plus 版依赖外部插件仓库和上游 feeds，若上游调整包名或依赖，可能需要同步更新 `Config/GENERAL_AX6000_PLUS.txt`。
 
-### PLUS 版使用提示
+### Plus 版使用提示
 
 - **AdGuard Home 首次启用**：出厂默认关闭。启用服务后访问 `http://路由器IP:3000` 完成安装向导，向导中 **DNS 监听端口请填 `5553`**（`53` 已被系统 dnsmasq 占用，填 53 会报错）；完成后在 LuCI「网络 → DHCP/DNS」的「DNS 转发」中填入 `127.0.0.1#5553` 并勾选「忽略解析文件」，广告过滤即对全局生效。
-- **代理插件二选一**：OpenClash 与 PassWall2 工作机制相同（接管 DNS + 透明代理规则），同时启用会互相抢占，轻则其中一个失效、分流错乱，重则断网，请只启用其中一个，切换前先停用当前插件。
+- **代理插件**：预装 OpenClash（接管 DNS + 透明代理规则）。启用前请确认未与其他代理/去广告插件同时抢占 DNS，避免分流错乱甚至断网。
 - **Docker 存储去向**：Docker 数据默认写入系统分区。百里 eMMC 有 128GB，建议先用「分区扩容（partexp）」将空闲 eMMC 挂载为独立分区，再在 Docker 设置中把存储路径指向该分区。
 
 ---
@@ -147,9 +147,9 @@ Releases 页面每个版本包含以下文件（PURE / PLUS / PROMAX 分开发�
 | `.github/workflows/WRT-TEST.yml` | 配置验证 | 只生成最终 `.config` 不编译，几分钟出结果 |
 | `.github/workflows/Auto-Clean.yml` | 清理+定时触发 | 每天 06:00（北京时间）清理旧产物并触发编译 |
 | `Config/MT798X-WIFI-YES.txt` | 平台配置 | 目标平台与设备型号（mediatek/filogic + RE-CP-03） |
-| `Config/GENERAL_AX6000.txt` | 通用配置 | PURE / PLUS 两个版本共用 |
-| `Config/GENERAL_AX6000_PLUS.txt` | Plus 版增量配置 | 仅 PLUS 生效 |
-| `Scripts/Packages.sh` | 插件拉取 | 克隆 OpenClash / PassWall2 等第三方插件源码 |
+| `Config/GENERAL_AX6000.txt` | 通用配置 | Pure / Plus / ProMax 三个版本共用 |
+| `Config/GENERAL_AX6000_PLUS.txt` | Plus 版增量配置 | Plus / ProMax 生效 |
+| `Scripts/Packages.sh` | 插件拉取 | 克隆 OpenClash 等第三方插件源码 |
 | `Scripts/Settings.sh` | 自定义设置 | 默认 IP/主机名/WiFi 名称、内存水位线调优等 |
 | `Docs/` | 文档 | 刷机救砖教程 |
 
@@ -178,14 +178,11 @@ Releases 页面每个版本包含以下文件（PURE / PLUS / PROMAX 分开发�
 | 项目 | 说明 |
 |------|------|
 | [vernesong/OpenClash](https://github.com/vernesong/OpenClash) | OpenClash 插件源码 |
-| [Openwrt-Passwall/openwrt-passwall2](https://github.com/Openwrt-Passwall/openwrt-passwall2) | PassWall2 插件源码 |
-| [Openwrt-Passwall/openwrt-passwall-packages](https://github.com/Openwrt-Passwall/openwrt-passwall-packages) | xray / sing-box 等依赖包 feed |
 | [sirpdboy/luci-app-partexp](https://github.com/sirpdboy/luci-app-partexp) | 分区扩容插件 |
 | [ones20250/packages](https://github.com/ones20250/packages) | wolultra 网络唤醒增强插件 |
 | [linkease/istore](https://github.com/linkease/istore) | iStore 应用商店（feed 集成） |
 | [linkease/nas-packages](https://github.com/linkease/nas-packages) · [nas-packages-luci](https://github.com/linkease/nas-packages-luci) · [openwrt-app-meta](https://github.com/linkease/openwrt-app-meta) | DDNSTO 服务/LuCI 界面/应用元数据（feed 集成） |
 | [0x676e67/luci-theme-design](https://github.com/0x676e67/luci-theme-design)（js 分支） | Design 主题 |
-| [songloft-org/songloft-for-router](https://github.com/songloft-org/songloft-for-router) | SongLoft 音乐服务器 OpenWrt 打包 |
 
 ### GitHub Actions 组件
 
@@ -206,9 +203,9 @@ Releases 页面每个版本包含以下文件（PURE / PLUS / PROMAX 分开发�
 ### 触发编译
 
 - **本仓库变更即编译**：main 分支有任何推送（改配置、加插件）立即触发编译，不等定时检测。
-- **每 4 小时检测上游更新**：每 4 小时自动比对 immortalwrt openwrt-25.12 分支与插件仓库（PLUS 版含 OpenClash / PassWall2 等）相对上次 Release 是否有新 commit——**有变化立即编译**，均无变化则跳过不重复出包，上游修复最迟 4 小时内跟进。发布时 Release 正文会自动附带**本次相对上次的上游提交列表**，一眼看清更新了什么。
+- **每 4 小时检测上游更新**：每 4 小时自动比对 immortalwrt openwrt-25.12 分支与插件仓库（Plus 版含 OpenClash 等）相对上次 Release 是否有新 commit——**有变化立即编译**，均无变化则跳过不重复出包，上游修复最迟 4 小时内跟进。发布时 Release 正文会自动附带**本次相对上次的上游提交列表**，一眼看清更新了什么。
 - **每日清理**：每天早上 6 点（北京时间）`Auto-Clean` 清理旧 Release（保留最近 100 个）与旧运行记录，完成后也会触发一次检测。
-- **手动编译**：Actions → `MTK-ALL` → Run workflow，同时构建 PURE 与 PLUS，手动触发跳过上游比对、永远直接编译。
+- **手动编译**：Actions → `MTK-ALL` → Run workflow，同时构建 Pure / Plus / ProMax，手动触发跳过上游比对、永远直接编译。
 - **配置验证**：Actions → `WRT-TEST`，仅生成最终 `.config` 不编译固件，几分钟出结果。
 
 ---

@@ -107,10 +107,13 @@ jobs:
           echo "WRT_PROFILE=$WRT_PROFILE_UPPER" >> $GITHUB_ENV
           case "$WRT_PROFILE_UPPER" in
             PROMAX)
-              echo "WRT_PROFILE_DESC=Promax 版，PLUS 全家桶基础上追加 SQM 流控、Argon 主题、带宽监控、网络唤醒、统计图表；启用 AdGuard Home 与代理插件前请先阅读 README 的「PLUS 版使用提示」" >> $GITHUB_ENV ;;
+              echo "WRT_PROFILE_PRETTY=ProMax" >> $GITHUB_ENV
+              echo "WRT_PROFILE_DESC=ProMax 版，Plus 全家桶基础上追加实时带宽监控（nlbwmon）、DDNSTO 内网穿透远程管理；启用 AdGuard Home 与 OpenClash 前请先阅读 README 的「Plus 版使用提示」" >> $GITHUB_ENV ;;
             PLUS)
-              echo "WRT_PROFILE_DESC=Plus 版，预装 OpenClash、PassWall2、Docker/Dockerman、AdGuard Home、DDNS、ttyd、UPnP 及分区扩容、网络唤醒等实用插件，刷完即用；启用 AdGuard Home 与代理插件前请先阅读 README 的「PLUS 版使用提示」" >> $GITHUB_ENV ;;
+              echo "WRT_PROFILE_PRETTY=Plus" >> $GITHUB_ENV
+              echo "WRT_PROFILE_DESC=Plus 版，预装 OpenClash、Docker/Dockerman、AdGuard Home、DDNS、ttyd、UPnP、iStore 商店及分区扩容、网络唤醒等实用插件，刷完即用；启用 AdGuard Home 与 OpenClash 前请先阅读 README 的「Plus 版使用提示」" >> $GITHUB_ENV ;;
             *)
+              echo "WRT_PROFILE_PRETTY=Pure" >> $GITHUB_ENV
               echo "WRT_PROFILE_DESC=纯净版，轻量稳定，仅含基础网络与常用管理插件，扩展插件按需自行安装" >> $GITHUB_ENV ;;
           esac
           WRT_INFO="${WRT_SOURCE%%/*}"
@@ -238,10 +241,8 @@ jobs:
             sed -i '/.cn\//d; /tencent/d; /aliyun/d' "$PROJECT_MIRRORS_FILE"
           fi
 
-          # Plus/Promax 版补充 PassWall 依赖包 feed（xray/sing-box 等）。
-          # LuCI 插件本体由 Packages.sh 克隆到 package/，这里不再加 LuCI feed，避免同名包双重定义。
+          # Plus/Promax 版追加 iStore 生态 feed；PassWall 依赖 feed 已随 PassWall2 移除一并删除
           if [[ "$WRT_PROFILE" != "PURE" ]]; then
-            echo "src-git passwall_packages https://github.com/Openwrt-Passwall/openwrt-passwall-packages" >> feeds.conf.default
             # iStore 应用商店 feed（is-opkg 兼容 apk）
             echo "src-git istore https://github.com/linkease/istore.git;main" >> feeds.conf.default
             # iStore 应用生态 feed：DDNSTO 等 app-meta 元数据 + 服务本体 + LuCI 界面
@@ -349,9 +350,6 @@ jobs:
 
           : > "$GITHUB_WORKSPACE/package-versions.txt"
           $GITHUB_WORKSPACE/Scripts/Packages.sh
-          if [[ "$WRT_PROFILE" != "PURE" && -e ../feeds/passwall_packages/.git ]]; then
-            echo "passwall_packages(feed) Openwrt-Passwall/openwrt-passwall-packages main $(git -C ../feeds/passwall_packages rev-parse --short HEAD)" >> "$GITHUB_WORKSPACE/package-versions.txt"
-          fi
           if [ -s "$GITHUB_WORKSPACE/package-versions.txt" ]; then
             {
               echo 'WRT_PKG_INFO<<EOF'
@@ -479,6 +477,9 @@ jobs:
         if: steps.changes.outputs.skip != 'true'
         uses: softprops/action-gh-release@v2
         with:
+          # tag 必须保持 PURE/PLUS/PROMAX 大写：在线升级插件按 tag 前缀匹配、Auto-Clean 按 tag 分组清理；
+          # 仅显示名使用 Pure/Plus/ProMax
+          name: ${{ env.WRT_CONFIG }}-${{ env.WRT_PROFILE_PRETTY }}-${{ env.WRT_INFO }}-${{ env.WRT_BRANCH }}-${{ env.WRT_DATE }}
           tag_name: ${{ env.WRT_CONFIG }}-${{ env.WRT_PROFILE }}-${{ env.WRT_INFO }}-${{ env.WRT_BRANCH }}-${{ env.WRT_DATE }}
           files: ./wrt/upload/*.*
           body: |
@@ -530,11 +531,11 @@ jobs:
             - 通用：地区 US，发射功率 24 dBm，加密 WPA2-PSK（CCMP 算法）
             ━━━━━━━━━━━━━━━━━━━━━━━
             📥 下载与刷机说明
-            - 本 Release 为 ${{ env.WRT_PROFILE }} 版固件；两个版本分开发布，请从 README 下载入口按需选择
+            - 本 Release 为 ${{ env.WRT_PROFILE_PRETTY }} 版固件；三个版本分开发布，请从 README 下载入口按需选择
             - 百里（MT7986A）无 factory 镜像：首次刷入需用 U-Boot 刷写 bl2/fip/gpt 后引导，系统内升级选 sysupgrade.itb
             - 刷机 / 救砖完整教程：[刷机救砖教程](${{ github.server_url }}/${{ github.repository }}/blob/main/Docs/刷机救砖教程.md)
             - Config-*.txt：本次编译的完整 .config 配置，便于复现或二次定制
-            - Packages-*.txt：外部插件（OpenClash / PassWall2 等）的仓库、分支与 commit 记录（纯净版无外部插件，无此文件）
+            - Packages-*.txt：外部插件（OpenClash 等）的仓库、分支与 commit 记录（纯净版无外部插件，无此文件）
             - sha256sums.txt：固件校验文件，刷机前请先校验下载完整性（方法见 README 刷机前必读）
 
             ⚠️ 风险提示

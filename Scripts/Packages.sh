@@ -68,12 +68,10 @@ fi
 #UPDATE_PACKAGE "momo" "nikkinikki-org/OpenWrt-momo" "main"
 #UPDATE_PACKAGE "nikki" "nikkinikki-org/OpenWrt-nikki" "main"
 if [[ "${WRT_PROFILE^^}" != "PURE" ]]; then
-	# LuCI 入口随 "pkg" 通配一并提取，依赖包（xray、sing-box、geodata 等）
-	# 由 passwall_packages feed 提供，避免同名包双重定义。
+	# OpenClash LuCI 入口随 "pkg" 通配一并提取，核心二进制由运行时自行下载。
 	UPDATE_PACKAGE "openclash" "vernesong/OpenClash" "master" "pkg"
-	#一代 PassWall 已由 PassWall2 取代，fork 者如需可取消注释，并同步启用 Config/GENERAL_AX6000_PLUS.txt 中对应配置段
-	#UPDATE_PACKAGE "passwall" "Openwrt-Passwall/openwrt-passwall" "main" "pkg"
-	UPDATE_PACKAGE "passwall2" "Openwrt-Passwall/openwrt-passwall2" "main" "pkg"
+	# PassWall 系列（一代/二代及 passwall_packages 依赖 feed）已整体移除：
+	# 与 OpenClash 双代理栈重复，两套核心占体积大头
 	# 分区扩容与网络唤醒：源码仅 PLUS/PROMAX 版拉取，PURE 中同名 =y 配置因无源码自动失效
 	UPDATE_PACKAGE "partexp" "sirpdboy/luci-app-partexp" "main"
 	# 唤醒增强已更名为 wolultra（wolplus/timewol 上游已移除）
