@@ -11,7 +11,7 @@ permissions: write-all
 
 jobs:
   auto_clean:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       # 按版本（PURE/PLUS/PROMAX）分组保留，每组各留最新 2 个 Release；
       # 防止某版本因上游无变化跳过编译后，其最后一个 Release 被挤掉
